@@ -11,24 +11,19 @@ def todo_list(proj, tag, state):
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
     sql = "SELECT * FROM todo WHERE status LIKE '1'"
-    arg = ""
+    # see https://www.tutorialspoint.com/python/python_tuples.htm 
+    arg = ()
     if proj != "all":
         sql = sql + " AND project LIKE ?"
-        arg = arg + "'" + proj + "', "
+        arg = arg + (proj,)
     if tag != "all":
         sql = sql + " AND tag LIKE ?"
-        arg = arg + "'" + tag + "', "
+        arg = arg + (tag,)
     if state != "all":
         sql = sql + " AND state LIKE ?"
-        arg = arg + "'" + state + "', "
+        arg = arg + (state,)
 
-    if arg == "":
-        c.execute(sql)
-    else:
-        arg = arg.strip(', ') 
-        print(sql)
-        print(arg)
-        c.execute(sql, (arg,))
+    c.execute(sql, arg)
     result = c.fetchall()
     c.close()
 
@@ -114,9 +109,12 @@ def show_item(item):
 
 @route('/help')
 def help():
-
     static_file('help.html', root='.')
 
+
+@route('/static/<filename:re:.*\.css>')
+def send_css(filename):
+    return static_file(filename, root='static')
 
 @route('/json<json:re:[0-9]+>')
 def show_json(json):

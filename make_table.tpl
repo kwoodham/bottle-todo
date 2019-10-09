@@ -1,6 +1,4 @@
-%#template to generate a HTML table from a list of tuples (or list of lists, or tuple of tuples or ...)
-<h1>Open Items</h1>
-%#<table border="1" padding="5px">
+% include('header.tpl', title='Open Items')
 <table border="1">
 %for row in rows:
   <tr>
@@ -10,3 +8,4 @@
   </tr>
 %end
 </table>
+% include('footer.tpl')
