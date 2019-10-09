@@ -5,12 +5,30 @@ from bottle import route, run, debug, template, request, static_file, error
 from bottle import default_app
 
 
-@route('/todo')
-def todo_list():
+@route('/todo/<proj>/<tag>/<state>')
+def todo_list(proj, tag, state):
 
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    c.execute("SELECT id, task FROM todo WHERE status LIKE '1'")
+    sql = "SELECT * FROM todo WHERE status LIKE '1'"
+    arg = ""
+    if proj != "all":
+        sql = sql + " AND project LIKE ?"
+        arg = arg + "'" + proj + "', "
+    if tag != "all":
+        sql = sql + " AND tag LIKE ?"
+        arg = arg + "'" + tag + "', "
+    if state != "all":
+        sql = sql + " AND state LIKE ?"
+        arg = arg + "'" + state + "', "
+
+    if arg == "":
+        c.execute(sql)
+    else:
+        arg = arg.strip(', ') 
+        print(sql)
+        print(arg)
+        c.execute(sql, (arg,))
     result = c.fetchall()
     c.close()
 
@@ -24,10 +42,15 @@ def new_item():
     if request.GET.save:
 
         new = request.GET.task.strip()
+        status = request.GET.status.strip()
+        project = request.GET.project.strip()
+        tag = request.GET.tag.strip()
+        state = request.GET.state.strip()
+
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
 
-        c.execute("INSERT INTO todo (task,status) VALUES (?,?)", (new, 1))
+        c.execute("INSERT INTO todo (task,status,project,tag,state) VALUES (?,?,?,?,?)", (new, 1, project, tag, state))
         new_id = c.lastrowid
 
         conn.commit()
@@ -43,8 +66,11 @@ def new_item():
 def edit_item(no):
 
     if request.GET.save:
-        edit = request.GET.task.strip()
+        task = request.GET.task.strip()
         status = request.GET.status.strip()
+        project = request.GET.project.strip()
+        tag = request.GET.tag.strip()
+        state = request.GET.state.strip()
 
         if status == 'open':
             status = 1
@@ -53,17 +79,22 @@ def edit_item(no):
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("UPDATE todo SET task = ?, status = ? WHERE id LIKE ?", (edit, status, no))
+        c.execute("UPDATE todo SET task = ?, status = ?, project = ?, tag = ?, state = ? WHERE id LIKE ?", (task, status, project, tag, state, no))
         conn.commit()
 
         return '<p>The item number %s was successfully updated</p>' % no
     else:
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("SELECT task FROM todo WHERE id LIKE ?", (str(no)))
-        cur_data = c.fetchone()
+        c.execute("SELECT * FROM todo WHERE id LIKE ?", (str(no)))
+        cur_data = c.fetchall()
 
-        return template('edit_task', old=cur_data, no=no)
+        if cur_data[0][2] == 1:
+            old_status = 'open'
+        else:
+            old_status = 'closed'
+
+        return template('edit_task', old=cur_data, old_status=old_status, no=no)
 
 
 @route('/item<item:re:[0-9]+>')
@@ -72,7 +103,7 @@ def show_item(item):
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
         c.execute("SELECT task FROM todo WHERE id LIKE ?", (item,))
-        result = c.fetchall()
+        result = c.fetchone()
         c.close()
 
         if not result:
@@ -92,14 +123,14 @@ def show_json(json):
 
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    c.execute("SELECT task FROM todo WHERE id LIKE ?", (json,))
+    c.execute("SELECT * FROM todo WHERE id LIKE ?", (json,))
     result = c.fetchall()
     c.close()
 
     if not result:
         return {'task': 'This item number does not exist!'}
     else:
-        return {'task': result[0]}
+        return {{'task': result[0]}, {'status': result[1]}, {'project': result[2]}, {'tag': result[3]}, {'state': result[4]}}
 
 
 @error(403)
