@@ -19,6 +19,9 @@
     % if not temp[0][5] == 'dormant':
     	<option>dormant</option>
     % end
+    % if not temp[0][5] == 'staging':
+    	<option>staging</option>
+    % end
     % if not temp[0][5] == 'working':
     	<option>working</option>
     % end

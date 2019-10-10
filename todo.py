@@ -1,16 +1,13 @@
 import sqlite3
+import datetime
 from bottle import route, run, debug, template, request, static_file, error
-
-# only needed when you run Bottle on mod_wsgi
-from bottle import default_app
-
 
 @route('/todo/<proj>/<tag>/<state>')
 def todo_list(proj, tag, state):
 
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    sql = "SELECT * FROM todo WHERE status LIKE '1'"
+    sql = "SELECT id, task, project, tag, state, date_in FROM todo WHERE status LIKE '1'"
     # see https://www.tutorialspoint.com/python/python_tuples.htm 
     arg = ()
     if proj != "all":
@@ -37,15 +34,19 @@ def new_item():
     if request.GET.save:
 
         new = request.GET.task.strip()
-        status = request.GET.status.strip()
         project = request.GET.project.strip()
         tag = request.GET.tag.strip()
         state = request.GET.state.strip()
+        date_in = datetime.date.today()
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
 
-        c.execute("INSERT INTO todo (task,status,project,tag,state) VALUES (?,?,?,?,?)", (new, 1, project, tag, state))
+        sql = """INSERT INTO 'todo' 
+               ('task', 'status', 'project', 'tag','state', 'date_in') 
+               VALUES (?,1,?,?,?,?);"""
+        arg = (new, project, tag, state, date_in)
+        c.execute(sql, arg)
         new_id = c.lastrowid
 
         conn.commit()
