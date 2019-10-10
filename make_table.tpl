@@ -2,13 +2,15 @@
 %import datetime
 <table>
   <tr>
-    <td><b>ID</b></td>
-    <td><b>Task</b></td>
-    <td><b>Project</b></td>
-    <td><b>Tag</b></td>
-    <td><b>State</b></td>
-    <td><b>Date In</b></td>
-    <td><b>Age</b></td>
+    <th><b>ID</b></th>
+    <th><b>Task</b></th>
+    <th><b>Project</b></th>
+    <th><b>Tag</b></th>
+    <th><b>State</b></th>
+    <th><b>Date</b></th>
+    <th><b>Age</b></th>
+    <th><b>Due</b></th>
+    <th><b>Days</b></th>
   </tr>
 %for row in rows:
   %if row[4] == 'working':
@@ -18,18 +20,56 @@
   %elif row[4] == 'staging':
     %tint = 'green'
   %else:
-    %tint = 'black'
+    %tint = '#b58900'
   %end
   <tr>
-  %for col in row:
-    <td><font color={{tint}}>{{col}}</font></td>
-  %end
+
+  <td><font color={{tint}}>{{row[0]}}</font></td>
+  <td><font color={{tint}}>{{row[1]}}</font></td>
+  <td><font color={{tint}}>{{row[2]}}</font></td>
+  <td><font color={{tint}}>{{row[3]}}</font></td>
+  <td><font color={{tint}}>{{row[4]}}</font></td>
+  <td><font color={{tint}}>{{row[5]}}</font></td>
 
   %old = datetime.datetime.strptime(row[5],'%Y-%m-%d')
   %new = datetime.date.today()
   %dif = new - old.date()
-  <td><b>{{dif.days}}</br></td>
+  <td><font color={{tint}}>{{dif.days}}</font></td>
+
+  %due = datetime.datetime.strptime(row[6],'%Y-%m-%d')
+  %if due.year == 2000:
+    <td><font color={{tint}}>-</font></td>
+    <td><font color={{tint}}>-</font></td>
+  %else:
+    <td><font color={{tint}}>{{row[6]}}</font></td>
+    %dif = due.date() - datetime.date.today()
+    <td><font color={{tint}}>{{dif.days}}</font></td>
+  %end 
+
   </tr>
 %end
 </table>
+<br>
+<table>
+  <tr>
+    <td>
+      <form action="/edit" method="get">
+        <input type="text" name="number" size="5" maxlength="5">
+        <input type="submit" name="edit" value="edit">
+      </form>
+    </td>
+    <td>
+      <form action="/del" method="get">
+        <input type="text" name="number" size="5" maxlength="5">
+        <input type="submit" name="delete" value="delete">
+      </form>
+    </td>
+    <td>
+      <form action="/new" method="get">
+        <input type="submit" name="new" value="new">
+      </form>
+    </td>
+  </tr>
+</table>
+
 % include('footer.tpl')

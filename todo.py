@@ -5,27 +5,33 @@ from bottle import route, run, debug, template, request, static_file, error
 @route('/todo/<proj>/<tag>/<state>')
 def todo_list(proj, tag, state):
 
-    conn = sqlite3.connect('todo.db')
-    c = conn.cursor()
-    sql = "SELECT id, task, project, tag, state, date_in FROM todo WHERE status LIKE '1'"
-    # see https://www.tutorialspoint.com/python/python_tuples.htm 
-    arg = ()
-    if proj != "all":
-        sql = sql + " AND project LIKE ?"
-        arg = arg + (proj,)
-    if tag != "all":
-        sql = sql + " AND tag LIKE ?"
-        arg = arg + (tag,)
-    if state != "all":
-        sql = sql + " AND state LIKE ?"
-        arg = arg + (state,)
+    if request.GET.edit:
+        number = request.GET.number
+        edit_item(number)
+        return
 
-    c.execute(sql, arg)
-    result = c.fetchall()
-    c.close()
+    else:
 
-    output = template('make_table', rows=result)
-    return output
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+        sql = "SELECT id, task, project, tag, state, date_in, date_due FROM todo WHERE status LIKE '1'"
+        # see https://www.tutorialspoint.com/python/python_tuples.htm 
+        arg = ()
+        if proj != "all":
+            sql = sql + " AND project LIKE ?"
+            arg = arg + (proj,)
+        if tag != "all":
+            sql = sql + " AND tag LIKE ?"
+            arg = arg + (tag,)
+        if state != "all":
+            sql = sql + " AND state LIKE ?"
+            arg = arg + (state,)
+
+        c.execute(sql, arg)
+        result = c.fetchall()
+        c.close()
+
+        return template('make_table', rows=result)
 
 
 @route('/new', method='GET')
@@ -38,25 +44,54 @@ def new_item():
         tag = request.GET.tag.strip()
         state = request.GET.state.strip()
         date_in = datetime.date.today()
+        date_due = request.GET.date_due.strip()
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
 
         sql = """INSERT INTO 'todo' 
-               ('task', 'status', 'project', 'tag','state', 'date_in') 
-               VALUES (?,1,?,?,?,?);"""
-        arg = (new, project, tag, state, date_in)
+               ('task', 'status', 'project', 'tag','state', 'date_in', 'date_due') 
+               VALUES (?,1,?,?,?,?,?);"""
+        arg = (new, project, tag, state, date_in, date_due)
         c.execute(sql, arg)
         new_id = c.lastrowid
 
         conn.commit()
         c.close()
 
-        return '<p>The new task was inserted into the database, the ID is %s</p>' % new_id
+        return todo_list(proj='all', tag='all', state='all')
 
     else:
         return template('new_task.tpl')
 
+@route('/del/<no:int>', method='GET')
+def del_item(no):
+
+    if request.GET.delete:
+
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+        c.execute("DELETE FROM todo WHERE id LIKE ?;", (no,))
+        conn.commit()
+        c.close()
+
+        return todo_list(proj='all', tag='all', state='all')
+
+    else:
+
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+        c.execute("SELECT task FROM todo WHERE id LIKE ?", (no,))
+        task_text = c.fetchone()
+        c.close()
+
+        return template('del_task.tpl', task=task_text, no=no)
+
+@route('/del',  method='GET')
+def del_item_from_table():
+    if request.GET.delete:
+        number = request.GET.number.strip()
+        return del_item(number)
 
 @route('/edit/<no:int>', method='GET')
 def edit_item(no):
@@ -76,22 +111,31 @@ def edit_item(no):
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
         c.execute("UPDATE todo SET task = ?, status = ?, project = ?, tag = ?, state = ? WHERE id LIKE ?", (task, status, project, tag, state, no))
+        if status == 0:
+            c.execute("UPDATE todo SET date_out = ? WHERE id LIKE ?", (datetime.date.today(), no))           
         conn.commit()
 
-        return '<p>The item number %s was successfully updated</p>' % no
+        return todo_list(proj='all', tag='all', state='all')
+
     else:
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("SELECT * FROM todo WHERE id LIKE ?", (str(no)))
+        c.execute("SELECT * FROM todo WHERE id LIKE ?", (str(no),))
         cur_data = c.fetchall()
 
         if cur_data[0][2] == 1:
-            old_status = 'open'
+            cur_status = 'open'
         else:
-            old_status = 'closed'
+            cur_status = 'closed'
 
-        return template('edit_task', old=cur_data, old_status=old_status, no=no)
+        return template('edit_task', old=cur_data, old_status=cur_status, no=no)
 
+@route('/edit', method='GET')
+def edit_item_from_table():
+
+    if request.GET.edit:
+        number = request.GET.number.strip()
+        return edit_item(number)
 
 @route('/item<item:re:[0-9]+>')
 def show_item(item):

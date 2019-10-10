@@ -1,0 +1,41 @@
+body {
+/* font-family:"Trebuchet MS",arial,sans-serif; */
+font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+}
+
+a:link {text-decoration:none; color:blue;}
+a:visited {text-decoration:none; color:blue;}
+a:hover {text-decoration:underline; color:#FF704D;}
+a:active {text-decoration:underline;}
+
+p, li {margin-left:10%; width:80%; text-align:justify;}
+
+/* pandoc puts header at top of page - don't want this for top page */
+.title, .author, .date {display:none;}
+
+h1 {background-color:#E0E0E0; border: 1px solid grey;}
+h1 {margin-left:10%; width:80%; text-align:center;}
+h2, h3, h4 {margin-left:10%;}
+
+li ul li {margin-left:0%;}
+
+table
+{
+border-collapse:collapse;
+width:80%;
+margin-left:10%;
+}
+table
+{
+border: 1px solid #D8D8D8;
+}
+th
+{
+background-color:grey;
+color:white;
+}
+td
+{
+padding:5px;
+text-align:center;
+}
