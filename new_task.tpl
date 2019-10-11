@@ -10,7 +10,7 @@
       <th><b>due</b></th>
     </tr>
     <tr>
-      <td><input type="text" size="100" maxlength="100" name="task"></td>
+      <td><input type="text" size="50" maxlength="50" name="task"></td>
       <td><input type="text" size="20" maxlength="20" name="project"></td>
       <td><input type="text" size="20" maxlength="20" name="tag"></td>
       <td><select name="state">
@@ -20,9 +20,9 @@
         <option>waiting</option>
         </select>
       </td>
-      <td><input type="date" size="20" maxlength="20" name="date_due" value='2000-01-01 00:00:00'></td>
+      <td><input type="date" size="20" maxlength="20" name="date_due" value='2000-01-01'></td>
     </tr>
-    <tr><td colspan=4><input type="submit" name="save" value="save"></td> </tr>
+    <tr><td colspan=5><input type="submit" name="save" value="save"></td> </tr>
   </table>
 </form>
 % include('footer.tpl')

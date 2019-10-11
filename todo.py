@@ -1,6 +1,7 @@
 import sqlite3
 import datetime
 from bottle import route, run, debug, template, request, static_file, error
+import datetime
 
 @route('/todo/<proj>/<tag>/<state>')
 def todo_list(proj, tag, state):
@@ -102,6 +103,7 @@ def edit_item(no):
         project = request.GET.project.strip()
         tag = request.GET.tag.strip()
         state = request.GET.state.strip()
+        date_due = request.GET.date_due.strip()
 
         if status == 'open':
             status = 1
@@ -110,7 +112,10 @@ def edit_item(no):
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("UPDATE todo SET task = ?, status = ?, project = ?, tag = ?, state = ? WHERE id LIKE ?", (task, status, project, tag, state, no))
+        sql = """UPDATE todo 
+            SET task = ?, status = ?, project = ?, tag = ?, state = ?, date_due = ?
+            WHERE id LIKE ?"""
+        c.execute(sql, (task, status, project, tag, state, date_due, no))
         if status == 0:
             c.execute("UPDATE todo SET date_out = ? WHERE id LIKE ?", (datetime.date.today(), no))           
         conn.commit()
