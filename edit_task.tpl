@@ -1,4 +1,5 @@
 % include('header.tpl', title='Edit Task %s' % no)
+%import datetime
 
 <form action="/edit/{{no}}" method="get">
 
@@ -9,6 +10,7 @@
       <th><b>project</b></th>
       <th><b>tag</b></th>
       <th><b>state</b></th>
+      <th><b>due</b></th>
     </tr>
 
     <tr>
@@ -44,9 +46,12 @@
           % end
         </select>
       </td>
+
+      %date_due = datetime.datetime.fromisoformat(old[0][6])
+      <td><input type="date" size="20" maxlength="20" name="date_due" value={{date_due.strftime('%Y-%m-%d')}}></td>
     </tr>
 
-    <tr><td colspan=5><input type="submit" name="save" value="save"></td> </tr>
+    <tr><td colspan=6><input type="submit" name="save" value="save"></td> </tr>
 
   <table>
 </form>

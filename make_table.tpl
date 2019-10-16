@@ -24,25 +24,26 @@
   %end
   <tr>
 
-  <td><font color={{tint}}>{{row[0]}}</font></td>
+  %date_in  = datetime.datetime.fromisoformat(row[5]).date()
+  %date_due = datetime.datetime.fromisoformat(row[6]).date()
+
+  <td><font color={{tint}}>{{row[0]}}</font></td> 
   <td><font color={{tint}}>{{row[1]}}</font></td>
   <td><font color={{tint}}>{{row[2]}}</font></td>
   <td><font color={{tint}}>{{row[3]}}</font></td>
   <td><font color={{tint}}>{{row[4]}}</font></td>
-  <td><font color={{tint}}>{{row[5]}}</font></td>
+  <td><font color={{tint}}>{{date_in.strftime('%Y-%m-%d')}}</font></td>
 
-  %old = datetime.datetime.strptime(row[5],'%Y-%m-%d')
-  %new = datetime.date.today()
-  %dif = new - old.date()
+
+  %dif = datetime.date.today() - date_in
   <td><font color={{tint}}>{{dif.days}}</font></td>
 
-  %due = datetime.datetime.strptime(row[6],'%Y-%m-%d')
-  %if due.year == 2000:
+  %if date_due.year == 2000:
     <td><font color={{tint}}>-</font></td>
     <td><font color={{tint}}>-</font></td>
   %else:
-    <td><font color={{tint}}>{{row[6]}}</font></td>
-    %dif = due.date() - datetime.date.today()
+    <td><font color={{tint}}>{{date_due.strftime('%Y-%m-%d')}}</font></td>
+    %dif = date_due - datetime.date.today()
     <td><font color={{tint}}>{{dif.days}}</font></td>
   %end 
 

@@ -2,6 +2,7 @@ import sqlite3
 import datetime
 from bottle import route, run, debug, template, request, static_file, error
 
+# URLs of form todo/project/tag/state
 @route('/todo/<proj>/<tag>/<state>')
 def todo_list(proj, tag, state):
 
@@ -14,7 +15,11 @@ def todo_list(proj, tag, state):
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        sql = "SELECT id, task, project, tag, state, date_in, date_due FROM todo WHERE status LIKE '1'"
+        sql = """SELECT DISTINCT id, task, project, tag, state, date_due, FROM todo,
+
+        history.entry_date,  
+              FROM todo, history WHERE todo.id==history.task_id AND todo.status LIKE '1'"""
+
         # see https://www.tutorialspoint.com/python/python_tuples.htm 
         arg = ()
         if proj != "all":
@@ -33,7 +38,12 @@ def todo_list(proj, tag, state):
 
         return template('make_table', rows=result)
 
+# URLs /todo - return all
+@route('/todo',  method='GET')
+def todo_all():
+        return todo_list(proj='all', tag='all', state='all')
 
+# URLs of form /new, returns to /project/tag/state list
 @route('/new', method='GET')
 def new_item():
 
@@ -43,18 +53,24 @@ def new_item():
         project = request.GET.project.strip()
         tag = request.GET.tag.strip()
         state = request.GET.state.strip()
-        date_in = datetime.date.today()
+        date_in = datetime.datetime.now().isoformat()
         date_due = request.GET.date_due.strip()
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
 
         sql = """INSERT INTO 'todo' 
-               ('task', 'status', 'project', 'tag','state', 'date_in', 'date_due') 
-               VALUES (?,1,?,?,?,?,?);"""
-        arg = (new, project, tag, state, date_in, date_due)
+               ('task', 'status', 'project', 'tag','state', 'date_due') 
+               VALUES (?,1,?,?,?,?);"""
+        arg = (new, project, tag, state, date_due)
         c.execute(sql, arg)
         new_id = c.lastrowid
+
+        # Update the history table
+        sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger')
+                VALUES (?, ?,"OPEN")"""
+        arg = (new_id, date_in)
+        c.execute(sql, arg)
 
         conn.commit()
         c.close()
@@ -64,6 +80,7 @@ def new_item():
     else:
         return template('new_task.tpl')
 
+# URLs /del/number, returns to /project/tag/state list
 @route('/del/<no:int>', method='GET')
 def del_item(no):
 
@@ -72,6 +89,11 @@ def del_item(no):
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
         c.execute("DELETE FROM todo WHERE id LIKE ?;", (no,))
+
+        sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, "DELETED")"""
+        arg = (no, datetime.datetime.now().isoformat())
+        c.execute(sql, arg)
+
         conn.commit()
         c.close()
 
@@ -87,12 +109,14 @@ def del_item(no):
 
         return template('del_task.tpl', task=task_text, no=no)
 
+# URLs /del - gets number from form, returns to /del/number
 @route('/del',  method='GET')
 def del_item_from_table():
     if request.GET.delete:
         number = request.GET.number.strip()
         return del_item(number)
 
+# URLs /edit/number, returns to /project/tags/state
 @route('/edit/<no:int>', method='GET')
 def edit_item(no):
 
@@ -102,18 +126,31 @@ def edit_item(no):
         project = request.GET.project.strip()
         tag = request.GET.tag.strip()
         state = request.GET.state.strip()
-
-        if status == 'open':
-            status = 1
-        else:
-            status = 0
+        date_due = request.GET.date_due.strip()
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("UPDATE todo SET task = ?, status = ?, project = ?, tag = ?, state = ? WHERE id LIKE ?", (task, status, project, tag, state, no))
+
+        if status == 'closed':
+            status = 0
+        else:
+            status = 1
+
+        sql = """UPDATE todo SET task = ?, status = ?, project = ?, tag = ?, state = ?, date_due = ? WHERE id LIKE ?"""
+        arg = (task, status, project, tag, state, date_due, no)   
+        c.execute(sql, arg)
+
         if status == 0:
-            c.execute("UPDATE todo SET date_out = ? WHERE id LIKE ?", (datetime.date.today(), no))           
+            sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, "CLOSED")"""
+            arg = (no, datetime.datetime.now().isoformat())
+
+        else:
+            sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, "EDITED")"""
+            arg = (no, datetime.datetime.now().isoformat())
+
+        c.execute(sql, arg)
         conn.commit()
+        c.close()
 
         return todo_list(proj='all', tag='all', state='all')
 
@@ -130,6 +167,7 @@ def edit_item(no):
 
         return template('edit_task', old=cur_data, old_status=cur_status, no=no)
 
+# URL /edit, gets number from form and executes /edit/number
 @route('/edit', method='GET')
 def edit_item_from_table():
 
@@ -137,6 +175,7 @@ def edit_item_from_table():
         number = request.GET.number.strip()
         return edit_item(number)
 
+# From baseline example - need to extend to pull in notes and status table
 @route('/item<item:re:[0-9]+>')
 def show_item(item):
 
@@ -156,7 +195,7 @@ def show_item(item):
 def help():
     static_file('help.html', root='.')
 
-
+#  Comes from page that showed how to reference css
 @route('/static/<filename:re:.*\.css>')
 def send_css(filename):
     return static_file(filename, root='static')
