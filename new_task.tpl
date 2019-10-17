@@ -21,7 +21,7 @@
         </select>
       </td>
 
-      <td><input type="date" size="20" maxlength="20" name="date_due" value='2000-01-01T00:00:00'></td>
+      <td><input type="date" size="20" maxlength="20" name="date_due" value='2000-01-01'></td>
 
     </tr>
     <tr><td colspan=5><input type="submit" name="save" value="save"></td> </tr>

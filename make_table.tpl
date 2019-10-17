@@ -24,8 +24,8 @@
   %end
   <tr>
 
-  %date_in  = datetime.datetime.fromisoformat(row[5]).date()
-  %date_due = datetime.datetime.fromisoformat(row[6]).date()
+  %date_due = datetime.datetime.fromisoformat(row[5]).date()
+  %date_in  = datetime.datetime.fromisoformat(row[6]).date()
 
   <td><font color={{tint}}>{{row[0]}}</font></td> 
   <td><font color={{tint}}>{{row[1]}}</font></td>

@@ -7,37 +7,38 @@ import datetime
 @route('/todo/<proj>/<tag>/<state>')
 def todo_list(proj, tag, state):
 
-    if request.GET.edit:
-        number = request.GET.number
-        edit_item(number)
-        return
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    sql = """SELECT id, task, project, tag, state, date_due FROM todo WHERE todo.status LIKE '1'"""
 
-    else:
+    # see https://www.tutorialspoint.com/python/python_tuples.htm 
+    arg = ()
+    if proj != "all":
+        sql = sql + " AND project LIKE ?"
+        arg = arg + (proj,)
+    if tag != "all":
+        sql = sql + " AND tag LIKE ?"
+        arg = arg + (tag,)
+    if state != "all":
+        sql = sql + " AND state LIKE ?"
+        arg = arg + (state,)
 
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
-        sql = """SELECT DISTINCT id, task, project, tag, state, date_due, FROM todo,
+    c.execute(sql, arg)      
+    result = c.fetchall()
 
-        history.entry_date,  
-              FROM todo, history WHERE todo.id==history.task_id AND todo.status LIKE '1'"""
+    sql = """SELECT task_id, entry_date FROM history WHERE task_id==? and ledger LIKE 'OPENED'"""
 
-        # see https://www.tutorialspoint.com/python/python_tuples.htm 
-        arg = ()
-        if proj != "all":
-            sql = sql + " AND project LIKE ?"
-            arg = arg + (proj,)
-        if tag != "all":
-            sql = sql + " AND tag LIKE ?"
-            arg = arg + (tag,)
-        if state != "all":
-            sql = sql + " AND state LIKE ?"
-            arg = arg + (state,)
+    i = 0
+    for row in result:
+        arg = (row[0],)
+        c.execute(sql,arg)
+        a = c.fetchone()
+        result[i] = result[i] + (a[1],)
+        i = i+1
 
-        c.execute(sql, arg)
-        result = c.fetchall()
-        c.close()
+    c.close()
 
-        return template('make_table', rows=result)
+    return template('make_table', rows=result)
 
 # URLs /todo - return all
 @route('/todo',  method='GET')
@@ -57,6 +58,7 @@ def new_item():
         date_in = datetime.datetime.now().isoformat()
         date_due = request.GET.date_due.strip()
 
+
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
 
@@ -69,7 +71,7 @@ def new_item():
 
         # Update the history table
         sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger')
-                VALUES (?, ?,"OPEN")"""
+                VALUES (?, ?,"OPENED")"""
         arg = (new_id, date_in)
         c.execute(sql, arg)
 
