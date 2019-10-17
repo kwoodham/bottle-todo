@@ -21,7 +21,7 @@
 
       <td><input type="text" size="20" maxlength="20" name="tag"></td>
 
-      <td><select name="states">
+      <td><select name="state">
         %for state in states:
           <option>{{state[0]}}</option>
         %end
@@ -31,7 +31,11 @@
       <td><input type="date" size="20" maxlength="20" name="date_due" value='2000-01-01'></td>
 
     </tr>
-    <tr><td colspan=5><input type="submit" name="save" value="save"></td> </tr>
+      <tr><td colspan=5>
+        <input type="submit" name="save" value="save">
+        <input type="submit" name="cancel" value="cancel">
+      </td> 
+    </tr>
   </table>
 </form>
 % include('footer.tpl')

@@ -15,11 +15,36 @@ def get_projects():
 def get_states():
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    c.execute("SELECT name FROM states ORDER BY name DESC")
+    c.execute("SELECT name FROM states ORDER BY name ASC")
     states = c.fetchall()
     conn.commit()
     c.close()
     return states
+
+def display_item(no):
+
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM todo WHERE todo.id==?", (no,))
+    cur_data = c.fetchall()
+
+    if cur_data[0][2] == 1:
+        cur_status = 'open'
+    else:
+        cur_status = 'closed'
+
+    sql = """SELECT id, task_id, entry_date, ledger FROM history WHERE task_id==?
+        UNION
+        SELECT id, task_id, entry_date, ledger FROM notes WHERE task_id==?
+        ORDER BY entry_date ASC;"""
+
+    c.execute(sql,(no,no,))
+    ledger_data = c.fetchall()
+
+    conn.commit()
+    c.close()       
+
+    return template('edit_task', old=cur_data, old_status=cur_status, no=no, projects=get_projects(), states=get_states(), notes=ledger_data)
 
 # URLs of form todo/project/tag/state
 @route('/todo/<proj>/<tag>/<state>')
@@ -67,7 +92,11 @@ def todo_all():
 @route('/new', method='GET')
 def new_item():
 
-    if request.GET.save:
+    if request.GET.cancel:
+
+        return todo_list(proj='all', tag='all', state='all')
+
+    elif request.GET.save:
 
         new = request.GET.task.strip()
         project = request.GET.project.strip()
@@ -138,11 +167,42 @@ def del_item_from_table():
         number = request.GET.number.strip()
         return del_item(number)
 
+@route('/new_note/<no:int>',  method='GET')
+def new_note(no):
+
+    if request.GET.cancel:
+        return todo_list(proj='all', tag='all', state='all')
+
+    elif request.GET.save:  
+        note = request.GET.note.strip()
+
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+
+        sql = """INSERT INTO 'notes' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
+        arg = (no, datetime.datetime.now().isoformat(), note)
+        c.execute(sql, arg)
+        conn.commit()
+        c.close()
+
+        return display_item(no=no)
+
+    else:
+
+        return template('new_note', no=no,)
+
 # URLs /edit/number, returns to /project/tags/state
 @route('/edit/<no:int>', method='GET')
 def edit_item(no):
 
-    if request.GET.save:
+    if request.GET.cancel:
+        return todo_list(proj='all', tag='all', state='all')
+
+    elif request.GET.new_note:
+        return new_note(no=int(request.GET.number.strip()))
+
+    elif request.GET.save:
+
         task = request.GET.task.strip()
         status = request.GET.status.strip()
         project = request.GET.project.strip()
@@ -177,20 +237,8 @@ def edit_item(no):
         return todo_list(proj='all', tag='all', state='all')
 
     else:
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
-        c.execute("SELECT * FROM todo WHERE id LIKE ?", (str(no),))
-        cur_data = c.fetchall()
-        conn.commit()
-        c.close()
 
-        if cur_data[0][2] == 1:
-            cur_status = 'open'
-        else:
-            cur_status = 'closed'
-        
-
-        return template('edit_task', old=cur_data, old_status=cur_status, no=no, projects=get_projects(), states=get_states())
+        return display_item(no=no)
 
 # URL /edit, gets number from form and executes /edit/number
 @route('/edit', method='GET')
