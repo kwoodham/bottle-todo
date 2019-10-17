@@ -1,5 +1,5 @@
 % include('header.tpl', title='Edit Task %s' % no)
-%import datetime
+% import datetime
 
 <form action="/edit/{{no}}" method="get">
 
@@ -14,7 +14,7 @@
     </tr>
 
     <tr>
-      <td><input type="text" name="task" value="{{old[0][1]}}" size="100" maxlength="100"></td>
+      <td><input type="text" name="task" value="{{old[0][1]}}" size="50" maxlength="100"></td>
       <td><select name="status">
         <option>{{old_status}}</option>
         % temp = old_status

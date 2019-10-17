@@ -1,6 +1,7 @@
 import sqlite3
 import datetime
 from bottle import route, run, debug, template, request, static_file, error
+import datetime
 
 # URLs of form todo/project/tag/state
 @route('/todo/<proj>/<tag>/<state>')
@@ -128,17 +129,17 @@ def edit_item(no):
         state = request.GET.state.strip()
         date_due = request.GET.date_due.strip()
 
+        if status == 'open':
+            status = 1
+        else:
+            status = 0
+
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-
-        if status == 'closed':
-            status = 0
-        else:
-            status = 1
-
-        sql = """UPDATE todo SET task = ?, status = ?, project = ?, tag = ?, state = ?, date_due = ? WHERE id LIKE ?"""
-        arg = (task, status, project, tag, state, date_due, no)   
-        c.execute(sql, arg)
+        sql = """UPDATE todo 
+            SET task = ?, status = ?, project = ?, tag = ?, state = ?, date_due = ?
+            WHERE id LIKE ?"""
+        c.execute(sql, (task, status, project, tag, state, date_due, no))
 
         if status == 0:
             sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, "CLOSED")"""

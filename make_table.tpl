@@ -20,7 +20,7 @@
   %elif row[4] == 'staging':
     %tint = 'green'
   %else:
-    %tint = '#b58900'
+    %tint = 'yellow'
   %end
   <tr>
 
