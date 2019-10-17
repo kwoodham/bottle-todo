@@ -26,24 +26,20 @@
         </select>
       </td>
 
-      <td><input type="text" name="project" value="{{old[0][3]}}" size="20" maxlength="20"></td>
+      <td><select name="project">
+        <option>{{old[0][3]}}</option>
+        %for project in projects:
+          <option>{{project[0]}}</option>
+        %end
+      </td>        
+
       <td><input type="text" name="tag" value="{{old[0][4]}}" size="20" maxlength="20"></td>
 
       <td><select name="state">
-          <option>{{old[0][5]}}</option>
-          % temp = old
-          % if not temp[0][5] == 'dormant':
-          	<option>dormant</option>
-          % end
-          % if not temp[0][5] == 'staging':
-          	<option>staging</option>
-          % end
-          % if not temp[0][5] == 'working':
-          	<option>working</option>
-          % end
-          % if not temp[0][5] == 'waiting':
-          	<option>waiting</option>
-          % end
+        <option>{{old[0][5]}}</option>
+        %for state in states:
+          <option>{{state[0]}}</option>
+        %end
         </select>
       </td>
 

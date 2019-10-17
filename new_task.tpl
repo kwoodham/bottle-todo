@@ -11,13 +11,20 @@
     </tr>
     <tr>
       <td><input type="text" size="50" maxlength="50" name="task"></td>
-      <td><input type="text" size="20" maxlength="20" name="project"></td>
+
+      <td><select name="project">
+        %for project in projects:
+          <option>{{project[0]}}</option>
+        %end
+        </select>
+      </td>
+
       <td><input type="text" size="20" maxlength="20" name="tag"></td>
-      <td><select name="state">
-        <option>dormant</option>
-        <option>staging</option>
-        <option>working</option>
-        <option>waiting</option>
+
+      <td><select name="states">
+        %for state in states:
+          <option>{{state[0]}}</option>
+        %end
         </select>
       </td>
 

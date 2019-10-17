@@ -3,6 +3,24 @@ import datetime
 from bottle import route, run, debug, template, request, static_file, error
 import datetime
 
+def get_projects():
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT name FROM projects ORDER BY name DESC")
+    projects = c.fetchall()
+    conn.commit()
+    c.close()
+    return projects
+
+def get_states():
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT name FROM states ORDER BY name DESC")
+    states = c.fetchall()
+    conn.commit()
+    c.close()
+    return states
+
 # URLs of form todo/project/tag/state
 @route('/todo/<proj>/<tag>/<state>')
 def todo_list(proj, tag, state):
@@ -81,7 +99,8 @@ def new_item():
         return todo_list(proj='all', tag='all', state='all')
 
     else:
-        return template('new_task.tpl')
+
+        return template('new_task.tpl', projects=get_projects(), states=get_states())
 
 # URLs /del/number, returns to /project/tag/state list
 @route('/del/<no:int>', method='GET')
@@ -162,13 +181,16 @@ def edit_item(no):
         c = conn.cursor()
         c.execute("SELECT * FROM todo WHERE id LIKE ?", (str(no),))
         cur_data = c.fetchall()
+        conn.commit()
+        c.close()
 
         if cur_data[0][2] == 1:
             cur_status = 'open'
         else:
             cur_status = 'closed'
+        
 
-        return template('edit_task', old=cur_data, old_status=cur_status, no=no)
+        return template('edit_task', old=cur_data, old_status=cur_status, no=no, projects=get_projects(), states=get_states())
 
 # URL /edit, gets number from form and executes /edit/number
 @route('/edit', method='GET')
