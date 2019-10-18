@@ -7,7 +7,7 @@
       <th><b>Note</b></th>
     </tr>
     <tr>
-      <td><input type="text" size="200" maxlength="5000" name="note" value="{{note[0]}}"></td>
+      <td><input type="text" size="120" maxlength="5000" name="note" value="{{note[0]}}"></td>
     </tr>
     <tr>
       <td>
