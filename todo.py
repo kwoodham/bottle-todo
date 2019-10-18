@@ -358,8 +358,8 @@ def mistake403(code):
 def mistake404(code):
     return 'Sorry, this page does not exist!'
 
-
-debug(True)
-run(reloader=True)
+# debug(True)
+# run(reloader=True)
+run()
 # remember to remove reloader=True and debug(True) when you move your
 # application from development to a productive environment
