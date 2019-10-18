@@ -46,6 +46,13 @@ def display_item(no):
 
     return template('edit_task', old=cur_data, old_status=cur_status, no=no, projects=get_projects(), states=get_states(), notes=ledger_data)
 
+
+# URLs /todo - return all
+@route('/todo',  method='GET')
+def todo_all():
+        return todo_list(proj='all', tag='all', state='all')
+
+
 # URLs of form todo/project/tag/state
 @route('/todo/<proj>/<tag>/<state>')
 def todo_list(proj, tag, state):
@@ -69,7 +76,7 @@ def todo_list(proj, tag, state):
     c.execute(sql, arg)      
     result = c.fetchall()
 
-    sql = """SELECT task_id, entry_date FROM history WHERE task_id==? and ledger LIKE 'OPENED'"""
+    sql = """SELECT task_id, entry_date FROM history WHERE task_id==? and ledger LIKE 'OPENED%'"""
 
     i = 0
     for row in result:
@@ -82,11 +89,6 @@ def todo_list(proj, tag, state):
     c.close()
 
     return template('make_table', rows=result)
-
-# URLs /todo - return all
-@route('/todo',  method='GET')
-def todo_all():
-        return todo_list(proj='all', tag='all', state='all')
 
 # URLs of form /new, returns to /project/tag/state list
 @route('/new', method='GET')
@@ -118,8 +120,8 @@ def new_item():
 
         # Update the history table
         sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger')
-                VALUES (?, ?,"OPENED")"""
-        arg = (new_id, date_in)
+                VALUES (?, ?, ?)"""
+        arg = (new_id, date_in, "OPENED - " + state)
         c.execute(sql, arg)
 
         conn.commit()
@@ -131,6 +133,14 @@ def new_item():
 
         return template('new_task.tpl', projects=get_projects(), states=get_states())
 
+
+# URLs /del - gets number from form, returns to /del/number
+@route('/del',  method='GET')
+def del_item_from_table():
+    if request.GET.delete:
+        number = request.GET.number.strip()
+        return del_item(number)
+
 # URLs /del/number, returns to /project/tag/state list
 @route('/del/<no:int>', method='GET')
 def del_item(no):
@@ -139,7 +149,7 @@ def del_item(no):
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("DELETE FROM todo WHERE id LIKE ?;", (no,))
+        c.execute("UPDATE todo SET status = ?, state = ? WHERE id LIKE ?;", (0, "DELETED", no,))
 
         sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, "DELETED")"""
         arg = (no, datetime.datetime.now().isoformat())
@@ -160,46 +170,31 @@ def del_item(no):
 
         return template('del_task.tpl', task=task_text, no=no)
 
-# URLs /del - gets number from form, returns to /del/number
-@route('/del',  method='GET')
-def del_item_from_table():
-    if request.GET.delete:
+
+
+# URL /edit, gets number from form and executes /edit/number
+@route('/edit', method='GET')
+def edit_item_from_table():
+
+    if request.GET.edit:
         number = request.GET.number.strip()
-        return del_item(number)
+        return edit_item(number)
 
-@route('/new_note/<no:int>',  method='GET')
-def new_note(no):
 
-    if request.GET.cancel:
-        return todo_list(proj='all', tag='all', state='all')
-
-    elif request.GET.save:  
-        note = request.GET.note.strip()
-
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
-
-        sql = """INSERT INTO 'notes' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
-        arg = (no, datetime.datetime.now().isoformat(), note)
-        c.execute(sql, arg)
-        conn.commit()
-        c.close()
-
-        return display_item(no=no)
-
-    else:
-
-        return template('new_note', no=no,)
-
-# URLs /edit/number, returns to /project/tags/state
 @route('/edit/<no:int>', method='GET')
 def edit_item(no):
 
     if request.GET.cancel:
         return todo_list(proj='all', tag='all', state='all')
 
+    if request.GET.top:
+        return todo_list(proj='all', tag='all', state='all')
+
     elif request.GET.new_note:
         return new_note(no=int(request.GET.number.strip()))
+
+    elif request.GET.edit_note:
+        return edit_note(no=int(request.GET.note_number.strip()))
 
     elif request.GET.save:
 
@@ -223,30 +218,96 @@ def edit_item(no):
         c.execute(sql, (task, status, project, tag, state, date_due, no))
 
         if status == 0:
-            sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, "CLOSED")"""
-            arg = (no, datetime.datetime.now().isoformat())
+            sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
+            arg = (no, datetime.datetime.now().isoformat(), "CLOSED - " + state)
 
         else:
-            sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, "EDITED")"""
-            arg = (no, datetime.datetime.now().isoformat())
+            sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
+            arg = (no, datetime.datetime.now().isoformat(), "EDITED - " + state)
 
         c.execute(sql, arg)
         conn.commit()
         c.close()
 
-        return todo_list(proj='all', tag='all', state='all')
+        return display_item(no=no)
 
     else:
 
         return display_item(no=no)
 
-# URL /edit, gets number from form and executes /edit/number
-@route('/edit', method='GET')
-def edit_item_from_table():
+@route('/new_note/<no:int>',  method='GET')
+def new_note(no):
+
+    if request.GET.cancel:
+        return display_item(no=no)
+
+    elif request.GET.save:  
+        note = request.GET.note.strip()
+
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+
+        sql = """INSERT INTO 'notes' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
+        arg = (no, datetime.datetime.now().isoformat(), note)
+        c.execute(sql, arg)
+        conn.commit()
+        c.close()
+
+        return display_item(no=no)
+
+    else:
+
+        return template('new_note', no=no)
+
+@route('/edit_note', method='GET')
+def edit_from_table():
 
     if request.GET.edit:
-        number = request.GET.number.strip()
-        return edit_item(number)
+        number = int(request.GET.number.strip())
+        return edit_note(number)
+
+
+@route('/edit_note/<no:int>', method='GET')
+def edit_note(no):
+
+    if request.GET.cancel:
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+        c.execute("SELECT task_id FROM notes WHERE id==?", (no,))
+        result = c.fetchone()
+        c.close()
+
+        return display_item(no=int(result[0]))
+
+    elif request.GET.save:
+        note = request.GET.note.strip()
+
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+
+        c.execute("UPDATE notes SET ledger = ? WHERE id==?", (note, no,))
+        c.execute("SELECT task_id FROM notes WHERE id==?", (no,))
+        task_id = c.fetchone()
+
+        if note == "":
+            c.execute("DELETE FROM notes WHERE id==?;", (no,))
+            
+        conn.commit()
+        c.close()
+
+        return display_item(no=task_id[0])
+
+    else:
+
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+
+        c.execute("SELECT ledger FROM notes WHERE id==?", (no,))
+        note = c.fetchone()
+
+        conn.commit()
+        c.close()
+        return template('edit_note', no=no, note=note)
 
 # From baseline example - need to extend to pull in notes and status table
 @route('/item<item:re:[0-9]+>')

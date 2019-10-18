@@ -51,7 +51,8 @@
       <td colspan=6>
         <input type="hidden" name="number" value={{no}}>
         <input type="submit" name="save" value="save">
-        <input type="submit" name="cancel" value="cancel">        
+        <input type="submit" name="cancel" value="cancel">     
+        <input type="submit" name="top" value="task list">        
         <input type="submit" name="new_note" value="new note">
       </td>
     </tr>
@@ -65,8 +66,8 @@
   
 <table>
   <tr>
-    <th><b>date</b></th>
-    <th><b>time</b></th>
+    <th width=120px><b>date</b></th>
+    <th width=120px><b>time</b></th>
     <th colspan=2><b>ledger</b></th>
   </tr>
 
@@ -77,12 +78,12 @@
       <td>{{entry_date.strftime('%H:%M:%S')}}</td>
       <td class="left">{{note[3]}}</td>
 
-      %if note[3] not in ['OPENED', 'EDITED', 'CLOSED']:
+      %test = note[3].split()
+      %if test[0] not in ['OPENED', 'EDITED', 'CLOSED']:
         <td>
-          <form action="/edit" method="get">
+          <form action="/edit_note" method="get">
             <input type="hidden" name="number" value={{note[0]}}>
-            <input type="submit" name="modify" value="M">
-            <input type="submit" name="delete" value="D">
+            <input type="submit" name="edit" value="edit">
           </form>
         </td>
       %else:
@@ -91,7 +92,6 @@
     </tr>
   %end
 </table>
-
 
 
 % include('footer.tpl')
