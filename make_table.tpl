@@ -28,7 +28,7 @@
   %date_in  = datetime.datetime.fromisoformat(row[6]).date()
 
   <td><font color={{tint}}>{{row[0]}}</font></td> 
-  <td><font color={{tint}}>{{row[1]}}</font></td>
+  <td class="left"><font color={{tint}}>{{row[1]}}</font></td>
   <td><font color={{tint}}>{{row[2]}}</font></td>
   <td><font color={{tint}}>{{row[3]}}</font></td>
   <td><font color={{tint}}>{{row[4]}}</font></td>
@@ -54,20 +54,23 @@
 <table>
   <tr>
     <td>
-      <form action="/edit" method="get">
+      <form action="/modify" method="get">
         <input type="text" name="number" size="5" maxlength="5">
         <input type="submit" name="edit" value="edit">
-      </form>
-    </td>
-    <td>
-      <form action="/del" method="get">
-        <input type="text" name="number" size="5" maxlength="5">
         <input type="submit" name="delete" value="delete">
       </form>
     </td>
     <td>
+      <form action="/filter" method="get">
+        <input type="text" name="project" size="12" maxlength="20">
+        <input type="text" name="tag" size="12" maxlength="20">
+        <input type="text" name="state" size="12" maxlength="20">
+        <input type="submit" name="filter" value="filter">
+      </form>
+    </td>
+    <td>
       <form action="/new" method="get">
-        <input type="submit" name="new" value="new">
+        <input type="submit" name="new" value="new" autofocus>
       </form>
     </td>
   </tr>

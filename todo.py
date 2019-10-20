@@ -36,7 +36,7 @@ def display_item(no):
     sql = """SELECT id, task_id, entry_date, ledger FROM history WHERE task_id==?
         UNION
         SELECT id, task_id, entry_date, ledger FROM notes WHERE task_id==?
-        ORDER BY entry_date ASC;"""
+        ORDER BY entry_date DESC;"""
 
     c.execute(sql,(no,no,))
     ledger_data = c.fetchall()
@@ -47,11 +47,68 @@ def display_item(no):
     return template('edit_task', old=cur_data, old_status=cur_status, no=no, projects=get_projects(), states=get_states(), notes=ledger_data)
 
 
+# URLs /closed - return all
+@route('/closed',  method='GET')
+def closed_all():
+        return closed_list(proj='all', tag='all', state='all')
+
+# URLs of form closed/project/tag/state
+@route('/closed/<proj>/<tag>/<state>')
+def closed_list(proj, tag, state):
+
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    sql = """SELECT id, task, project, tag, state, date_due FROM todo WHERE todo.status LIKE '0'"""
+
+    # see https://www.tutorialspoint.com/python/python_tuples.htm 
+    arg = ()
+    if proj != "all":
+        sql = sql + " AND project LIKE ?"
+        arg = arg + (proj,)
+    if tag != "all":
+        sql = sql + " AND tag LIKE ?"
+        arg = arg + (tag,)
+    if state != "all":
+        sql = sql + " AND state LIKE ?"
+        arg = arg + (state,)
+
+    c.execute(sql, arg)      
+    result = c.fetchall()
+
+    sql = """SELECT task_id, entry_date FROM history WHERE task_id==? AND ledger LIKE 'CLOSED%'"""
+
+    i = 0
+    for row in result:
+        arg = (row[0],)
+        c.execute(sql,arg)
+        a = c.fetchone()
+        result[i] = result[i] + (a[1],)
+        i = i+1
+
+    c.close()
+
+    return template('make_table', rows=result)
+
+
 # URLs /todo - return all
 @route('/todo',  method='GET')
 def todo_all():
         return todo_list(proj='all', tag='all', state='all')
 
+# URLs /filter
+@route('/filter',  method='GET')
+def todo_filter():
+    project = request.GET.project.strip()
+    tag = request.GET.tag.strip()
+    state = request.GET.state.strip()
+    if project == '': 
+        project = 'all'
+    if tag == '': 
+        tag = 'all'
+    if state == '': 
+        state = 'all'
+
+    return todo_list(proj=project, tag=tag, state=state)
 
 # URLs of form todo/project/tag/state
 @route('/todo/<proj>/<tag>/<state>')
@@ -134,24 +191,29 @@ def new_item():
         return template('new_task.tpl', projects=get_projects(), states=get_states())
 
 
-# URLs /del - gets number from form, returns to /del/number
-@route('/del',  method='GET')
-def del_item_from_table():
+# URLs /modify - gets number from form and routes to delete or edit
+@route('/modify',  method='GET')
+def modify_item_from_table():
+    number = request.GET.number.strip()
     if request.GET.delete:
-        number = request.GET.number.strip()
         return del_item(number)
+    elif request.GET.edit:
+        return edit_item(number)
 
 # URLs /del/number, returns to /project/tag/state list
 @route('/del/<no:int>', method='GET')
 def del_item(no):
 
-    if request.GET.delete:
+    if request.GET.confirm_cancel:
+        return todo_list(proj='all', tag='all', state='all')
+
+    elif request.GET.confirm_delete:
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
         c.execute("UPDATE todo SET status = ?, state = ? WHERE id LIKE ?;", (0, "DELETED", no,))
 
-        sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, "DELETED")"""
+        sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, "CLOSED - DELETED")"""
         arg = (no, datetime.datetime.now().isoformat())
         c.execute(sql, arg)
 
@@ -204,6 +266,8 @@ def edit_item(no):
         tag = request.GET.tag.strip()
         state = request.GET.state.strip()
         date_due = request.GET.date_due.strip()
+        if date_due == '':
+            date_due = '2000-01-01'
 
         if status == 'open':
             status = 1
