@@ -85,6 +85,7 @@ def closed_list(proj, tag, state):
         result[i] = result[i] + (a[1],)
         i = i+1
 
+    conn.commit()
     c.close()
 
     return template('make_table_closed', rows=result)
