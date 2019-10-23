@@ -1,29 +1,30 @@
-% include('header.tpl', title='Open Items')
+%include('header.tpl', title='Open Items')
 %import datetime
+
+%st_vec = []
+%cl_vec = []
+%for i in states:
+    %st_vec.append(i[0])
+    %cl_vec.append(i[1])
+%end
+
 <table>
   <tr>
-    <th><b>ID</b></th>
-    <th><b>Task</b></th>
-    <th><b>Project</b></th>
-    <th><b>Tag</b></th>
-    <th><b>State</b></th>
-    <th><b>Date</b></th>
-    <th><b>Age</b></th>
-    <th><b>Due</b></th>
-    <th><b>Days</b></th>
+    <th><b>id</b></th>
+    <th><b>task</b></th>
+    <th><b>project</b></th>
+    <th><b>tag</b></th>
+    <th><b>state</b></th>
+    <th><b>date</b></th>
+    <th><b>age</b></th>
+    <th><b>due</b></th>
+    <th><b>days</b></th>
   </tr>
-%for row in rows:
-  %if row[4] == 'working':
-    %tint = 'red'
-  %elif row[4] == 'dormant':
-    %tint = 'lightgrey'
-  %elif row[4] == 'staging':
-    %tint = 'green'
-  %else:
-    %tint = 'blue'
-  %end
-  <tr>
 
+%for row in rows:
+  %tint = cl_vec[st_vec.index(row[4])]
+
+  <tr>
   %date_due = datetime.datetime.fromisoformat(row[5]).date()
   %date_in  = datetime.datetime.fromisoformat(row[6]).date()
 
@@ -53,14 +54,14 @@
 <br>
 <table>
   <tr>
-    <td>
+    <td colspan=2>
       <form action="/modify" method="get">
         <input type="text" name="number" size="5" maxlength="5">
         <input type="submit" name="edit" value="edit">
         <input type="submit" name="delete" value="delete">
       </form>
     </td>
-    <td>
+    <td colspan=5>
       <form action="/filter" method="get">
         <input type="text" name="project" size="12" maxlength="20">
         <input type="text" name="tag" size="12" maxlength="20">
@@ -68,7 +69,7 @@
         <input type="submit" name="filter" value="filter">
       </form>
     </td>
-    <td>
+    <td colspan=2>
       <form action="/new" method="get">
         <input type="submit" name="new" value="new" autofocus>
       </form>

@@ -15,7 +15,7 @@ def get_projects():
 def get_states():
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    c.execute("SELECT name FROM states ORDER BY name ASC")
+    c.execute("SELECT name, color FROM states ORDER BY name ASC")
     states = c.fetchall()
     conn.commit()
     c.close()
@@ -87,7 +87,7 @@ def closed_list(proj, tag, state):
 
     c.close()
 
-    return template('make_table', rows=result)
+    return template('make_table_closed', rows=result)
 
 
 # URLs /todo - return all
@@ -145,7 +145,7 @@ def todo_list(proj, tag, state):
 
     c.close()
 
-    return template('make_table', rows=result)
+    return template('make_table', rows=result, states=get_states())
 
 # URLs of form /new, returns to /project/tag/state list
 @route('/new', method='GET')
