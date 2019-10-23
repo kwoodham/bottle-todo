@@ -50,25 +50,69 @@
 
   </tr>
 %end
-</table>
-<br>
-<table>
+
+  <tr><td>--</td></tr>
+
   <tr>
-    <td colspan=2>
-      <form action="/modify" method="get">
-        <input type="text" name="number" size="5" maxlength="5">
+    <form action="/modify" method="get">
+      <td><select name="number">
+        %for row in rows:
+          <option>{{row[0]}}</option>
+        %end
+        </select>
+      </td>
+
+      <td class="left">
         <input type="submit" name="edit" value="edit">
         <input type="submit" name="delete" value="delete">
-      </form>
-    </td>
-    <td colspan=5>
-      <form action="/filter" method="get">
-        <input type="text" name="project" size="12" maxlength="20">
-        <input type="text" name="tag" size="12" maxlength="20">
-        <input type="text" name="state" size="12" maxlength="20">
-        <input type="submit" name="filter" value="filter">
-      </form>
-    </td>
+      </td>
+    </form>
+
+    <form action="/filter" method="get">
+      %table_p = []
+      %table_t = []
+      %table_s = []
+      %for row in rows:
+        %table_p.append(row[2])
+        %table_t.append(row[3])
+        %table_s.append(row[4])
+      %end
+
+      %table_p = list(set(table_p))
+      %table_t = list(set(table_t))
+      %table_s = list(set(table_s))
+
+      %table_p.sort()
+      %table_t.sort()
+      %table_s.sort()
+
+      <td><select name="project">
+        <option>all</option>
+        %for p in table_p:
+          <option>{{p}}</option>
+        %end
+        </select>
+      </td>
+
+      <td><select name="tag">
+        <option>all</option>
+        %for t in table_t:
+          <option>{{t}}</option>
+        %end
+        </select>
+      </td>
+
+      <td><select name="state">
+        <option>all</option>
+        %for s in table_s:
+          <option>{{s}}</option>
+        %end
+        </select>
+      </td>
+
+      <td class="left" colspan=2><input type="submit" name="filter" value="filter"></td>
+    </form>
+
     <td colspan=2>
       <form action="/new" method="get">
         <input type="submit" name="new" value="new" autofocus>
