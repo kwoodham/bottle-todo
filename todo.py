@@ -163,7 +163,8 @@ def new_item():
         state = request.GET.state.strip()
         date_in = datetime.datetime.now().isoformat()
         date_due = request.GET.date_due.strip()
-
+        if date_due == '':
+            date_due = '2000-01-01'
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
