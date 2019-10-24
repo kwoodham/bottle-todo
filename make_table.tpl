@@ -10,7 +10,7 @@
 
 <table>
   <tr>
-    <th><b>id</b></th>
+    <th border-top-left-radius: 15px><b>id</b></th>
     <th><b>task</b></th>
     <th><b>project</b></th>
     <th><b>tag</b></th>
@@ -18,7 +18,7 @@
     <th><b>date</b></th>
     <th><b>age</b></th>
     <th><b>due</b></th>
-    <th><b>days</b></th>
+    <th border-top-right-radius: 15px><b>days</b></th>
   </tr>
 
 %for row in rows:
@@ -51,7 +51,7 @@
   </tr>
 %end
 
-  <tr><td>--</td></tr>
+  <tr><td colspan=9> </td></tr>
 
   <tr>
     <form action="/modify" method="get">
@@ -78,7 +78,7 @@
         %table_s.append(row[4])
       %end
 
-      %table_p = list(set(table_p))
+      %table_p = list(set(table_p)) # generate a set of unique values
       %table_t = list(set(table_t))
       %table_s = list(set(table_s))
 
@@ -113,7 +113,7 @@
       <td class="left" colspan=2><input type="submit" name="filter" value="filter"></td>
     </form>
 
-    <td colspan=2>
+    <td colspan=2 class="right">
       <form action="/new" method="get">
         <input type="submit" name="new" value="new" autofocus>
       </form>
