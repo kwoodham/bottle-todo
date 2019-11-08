@@ -40,9 +40,21 @@ def do_upload():
 def home():
     return template('upload.tpl')
 
+@app.get('/download/<no:int>')
+def download(no):
+
+    conn = sqlite3.connect('blob.db')
+    c = conn.cursor()
+    c.execute("select id, name, type, size, file from blob where id==?", (no,))
+    a = c.fetchone()
+
+    # return template('download', filename=a[1], filetype=a[2], filesize=a[3], fileblob=a[4])
+    return template('download', filename=a[1], filetype=a[2], filesize=a[3])
+
 @error(403)
 def mistake403(code):
     return 'There is a mistake in your url!'
+
 
 
 @error(404)
