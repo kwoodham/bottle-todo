@@ -1,13 +1,12 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<title>upload file</title>
+<title>download file</title>
 </head>
 <body>
-<table border=0>
-  <tr><td><b>File Name:</b></td><td>{{filename}}</td></tr>
-  <tr><td><b>File Type:</b></td><td>{{filetype}}</td></tr>
-  <tr><td><b>File Size:</b></td><td>{{filesize}}</td></tr>
-</table>
+<form action="/download" method="POST">
+   <input type="text" name="record" value="">
+   <input type="submit" name="submit" value="submit">
+</form>
 </body>
 </html>
