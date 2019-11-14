@@ -1,6 +1,6 @@
 % include('header.tpl', title='New Note')
 
-<form action="/new_note/{{no}}" method="GET">
+<form action="/new_note/{{no}}" method="POST"  enctype="multipart/form-data">
   <table>
     <tr>
       <th><b>Note</b></th>

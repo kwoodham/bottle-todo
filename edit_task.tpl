@@ -1,7 +1,7 @@
 % include('header.tpl', title='Edit Task %s' % no)
 % import datetime
 
-<form action="/edit/{{no}}" method="get">
+<form action="/edit/{{no}}" method="POST" enctype="multipart/form-data">
 
   <table>
     <tr>
@@ -49,7 +49,7 @@
 
     <tr>
       <td colspan=6>
-        <input type="hidden" name="number" value={{no}}>
+        <input type="hidden" name="task_number" value={{no}}>
         <input type="submit" name="save" value="save">
         <input type="submit" name="cancel" value="cancel">     
         <input type="submit" name="top" value="task list">        
@@ -81,9 +81,9 @@
       %test = note[3].split()
       %if test[0] not in ['OPENED', 'EDITED', 'CLOSED']:
         <td>
-          <form action="/edit_note" method="get">
-            <input type="hidden" name="number" value={{note[0]}}>
-            <input type="submit" name="edit" value="edit">
+          <form action="/edit_note" method="GET">
+            <input type="hidden" name="note_number" value={{note[0]}}>
+            <input type="submit" name="edit_note" value="edit">
           </form>
         </td>
       %else:

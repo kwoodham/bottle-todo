@@ -18,7 +18,7 @@ p, li {margin-left:10%; width:80%; text-align:justify;}
 
 h1 {background-color:#E0E0E0; border: 1px solid grey;}
 h1 {margin-left:10%; width:80%; text-align:center;}
-h2, h3, h4 {margin-left:10%;}
+h2, h3, h4 {margin-left:10%; color:lightgrey}
 
 li ul li {margin-left:0%;}
 
