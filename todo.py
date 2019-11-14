@@ -1,7 +1,6 @@
 import sqlite3
 import datetime
 from bottle import Bottle, route, run, debug, template, request, static_file, error
-import datetime
 import os
 
 def get_projects():
@@ -355,7 +354,8 @@ def new_file(no):
 
         upload = request.files.get('upload')
         save_path = filedir = os.getcwd() + '/files'
-        isoname = datetime.datetime.now().isoformat()
+        entry_date = datetime.datetime.now().isoformat()
+        isoname = entry_date.replace(':','-')
         file_path = "{path}/{file}".format(path=save_path, file=isoname)
         upload.save(file_path, overwrite=True)
 
@@ -367,8 +367,8 @@ def new_file(no):
         upload.file.seek(0, 0)
 
         sql = """INSERT INTO 'attach' ('task_id', 'entry_date', 'filename', 
-                 'description', 'filesize', 'filetype') VALUES (?, ?, ?, ?, ?, ?)"""
-        arg = (no, isoname, upload.filename, description, filesize, upload.content_type,)
+                 'description', 'filesize', 'filetype', 'isoname') VALUES (?, ?, ?, ?, ?, ?,?)"""
+        arg = (no, entry_date, upload.filename, description, filesize, upload.content_type, isoname)
         c.execute(sql, arg)
         conn.commit()
         c.close()
@@ -397,7 +397,7 @@ def edit_file():
     c = conn.cursor()
 
 
-    sql = """SELECT id, entry_date, filename, filetype FROM attach WHERE id==?"""
+    sql = """SELECT id, isoname, filename, filetype FROM attach WHERE id==?"""
     c.execute(sql, (no,))
     a = c.fetchone()
 
@@ -407,7 +407,7 @@ def edit_file():
     # Need a confirmation in here...
     elif request.forms.get('delete'):
         c.execute("DELETE FROM attach WHERE id==?;", (no,))
-        os.remove(filedir + a[1])
+        os.remove(filedir + "/" +  a[1])
 
     conn.commit()
     c.close()
