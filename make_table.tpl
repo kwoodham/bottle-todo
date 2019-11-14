@@ -68,7 +68,7 @@
       </td>
     </form>
 
-    <form action="/filter" method="get">
+    <form action="/filter" method="POST" enctype="multipart/form-data">
       %table_p = []
       %table_t = []
       %table_s = []
