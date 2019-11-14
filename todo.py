@@ -2,6 +2,7 @@ import sqlite3
 import datetime
 from bottle import Bottle, route, run, debug, template, request, static_file, error
 import datetime
+import os
 
 def get_projects():
     conn = sqlite3.connect('todo.db')
@@ -41,10 +42,19 @@ def display_item(no):
     c.execute(sql,(no,no,))
     ledger_data = c.fetchall()
 
+    sql = """SELECT id, task_id, entry_date, filename, 
+        description, filesize, filetype FROM attach WHERE task_id==?
+        ORDER BY entry_date DESC;"""
+
+    c.execute(sql,(no,))
+    attach_data = c.fetchall()
+
     conn.commit()
     c.close()       
 
-    return template('edit_task', old=cur_data, old_status=cur_status, no=no, projects=get_projects(), states=get_states(), notes=ledger_data)
+    return template('edit_task', old=cur_data, 
+        old_status=cur_status, no=no, projects=get_projects(), 
+        states=get_states(), notes=ledger_data, attachments=attach_data)
 
 
 app = Bottle()
@@ -253,7 +263,6 @@ def edit_item_from_table():
 
 @app.post('/edit/<no:int>')
 def edit_item(no):
-
     
     if request.forms.get('cancel')=='cancel':
         return todo_list(proj='all', tag='all', state='all')
@@ -263,6 +272,9 @@ def edit_item(no):
 
     elif request.forms.get('new_note')=='new note':
         return new_note(no=int(request.forms.get('task_number')))
+
+    elif request.forms.get('new_file')=='new attachment':
+        return new_file(no=int(request.forms.get('task_number')))
 
     elif request.forms.get('edit_note')=='edit':
         return edit_note(no=int(request.forms.get('note_number')))
@@ -332,6 +344,42 @@ def new_note(no):
 
         return template('new_note', no=no)
 
+
+@app.post('/new_file/<no:int>')
+def new_file(no):
+
+    if request.forms.get('cancel')=='cancel':
+        return display_item(no=no)
+
+    elif request.forms.get('submit')=='submit':  
+
+        upload = request.files.get('upload')
+        save_path = filedir = os.getcwd() + '/files'
+        isoname = datetime.datetime.now().isoformat()
+        file_path = "{path}/{file}".format(path=save_path, file=isoname)
+        upload.save(file_path, overwrite=True)
+
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+
+        description = request.forms.get('description')
+        filesize = upload.file.seek(0, 2)
+        upload.file.seek(0, 0)
+
+        sql = """INSERT INTO 'attach' ('task_id', 'entry_date', 'filename', 
+                 'description', 'filesize', 'filetype') VALUES (?, ?, ?, ?, ?, ?)"""
+        arg = (no, isoname, upload.filename, description, filesize, upload.content_type,)
+        c.execute(sql, arg)
+        conn.commit()
+        c.close()
+
+        return display_item(no=no)
+
+    else:
+
+        return template('new_file', no=no)
+
+
 @app.get('/edit_note')
 def edit_from_table():
 
@@ -339,6 +387,33 @@ def edit_from_table():
         number = int(request.GET.note_number.strip())
         return edit_note(number)
 
+@app.post('/edit_file')
+def edit_file():
+
+    no = int(request.forms.get('number'))
+    filedir = os.getcwd() + '/files'
+
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+
+
+    sql = """SELECT id, entry_date, filename, filetype FROM attach WHERE id==?"""
+    c.execute(sql, (no,))
+    a = c.fetchone()
+
+    if request.forms.get('download'):
+        return static_file(a[1], root=filedir, download=a[2], mimetype=a[3])
+
+    # Need a confirmation in here...
+    elif request.forms.get('delete'):
+        c.execute("DELETE FROM attach WHERE id==?;", (no,))
+        os.remove(filedir + a[1])
+
+    conn.commit()
+    c.close()
+
+    task_id = int(request.forms.get('task_id'))
+    return display_item(no=task_id)
 
 @app.post('/edit_note/<no:int>')
 def edit_note(no):

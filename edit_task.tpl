@@ -54,6 +54,7 @@
         <input type="submit" name="cancel" value="cancel">     
         <input type="submit" name="top" value="task list">        
         <input type="submit" name="new_note" value="new note">
+        <input type="submit" name="new_file" value="new attachment">
       </td>
     </tr>
 
@@ -93,5 +94,36 @@
   %end
 </table>
 
+</br>
+</br>
+</hr>
+  
+<table>
+  <tr>
+    <th width=120px><b>date</b></th>
+    <th width=120px><b>time</b></th>
+    <th><b>filename</b></th>
+    <th><b>description</b></th>
+    <th><b>action</b></th>
+  </tr>
+
+  %for attach in attachments:
+    <tr>  
+      %entry_date = datetime.datetime.fromisoformat(attach[2])
+      <td>{{entry_date.strftime('%Y-%m-%d')}}</td>
+      <td>{{entry_date.strftime('%H:%M:%S')}}</td>
+      <td class="left">{{attach[3]}}</td>
+      <td class="left">{{attach[4]}}</td>
+      <td>
+        <form action="/edit_file" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="task_id" value={{no}}>
+          <input type="hidden" name="number" value={{attach[0]}}>
+          <input type="submit" name="download" value="download">
+          <input type="submit" name="delete" value="delete">
+        </form>
+      </td>
+    </tr>
+  %end
+</table>
 
 % include('footer.tpl')
