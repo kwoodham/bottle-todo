@@ -1,6 +1,6 @@
 % include('header.tpl', title='New Task')
-<p>Add a new task to the ToDo list:</p>
-<form action="/new" method="GET">
+<h3>new task:</h3>
+<form action="/new" method="POST" enctype="multipart/form-data">
   <table>
     <tr>
       <th><b>text</b></th>

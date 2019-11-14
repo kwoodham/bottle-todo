@@ -1,6 +1,6 @@
 % include('header.tpl', title='New Note')
 
-<form action="/edit_note/{{no}}" method="GET">
+<form action="/edit_note/{{no}}" method="POST" enctype="multipart/form-data">
   <h3>Edit note - saving a cleared note deletes it</h3>
   <table>
     <tr>
