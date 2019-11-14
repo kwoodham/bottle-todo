@@ -1,7 +1,7 @@
 % include('header.tpl', title='Edit Task %s' % no)
 % import datetime
 
-<form action="/edit/{{no}}" method="get">
+<form action="/edit/{{no}}" method="POST" enctype="multipart/form-data">
 
   <table>
     <tr>
@@ -49,11 +49,12 @@
 
     <tr>
       <td colspan=6>
-        <input type="hidden" name="number" value={{no}}>
+        <input type="hidden" name="task_number" value={{no}}>
         <input type="submit" name="save" value="save">
         <input type="submit" name="cancel" value="cancel">     
         <input type="submit" name="top" value="task list">        
         <input type="submit" name="new_note" value="new note">
+        <input type="submit" name="new_file" value="new attachment">
       </td>
     </tr>
 
@@ -81,9 +82,9 @@
       %test = note[3].split()
       %if test[0] not in ['OPENED', 'EDITED', 'CLOSED']:
         <td>
-          <form action="/edit_note" method="get">
-            <input type="hidden" name="number" value={{note[0]}}>
-            <input type="submit" name="edit" value="edit">
+          <form action="/edit_note" method="GET">
+            <input type="hidden" name="note_number" value={{note[0]}}>
+            <input type="submit" name="edit_note" value="edit">
           </form>
         </td>
       %else:
@@ -93,5 +94,36 @@
   %end
 </table>
 
+</br>
+</br>
+</hr>
+  
+<table>
+  <tr>
+    <th width=120px><b>date</b></th>
+    <th width=120px><b>time</b></th>
+    <th><b>filename</b></th>
+    <th><b>description</b></th>
+    <th><b>action</b></th>
+  </tr>
+
+  %for attach in attachments:
+    <tr>  
+      %entry_date = datetime.datetime.fromisoformat(attach[2])
+      <td>{{entry_date.strftime('%Y-%m-%d')}}</td>
+      <td>{{entry_date.strftime('%H:%M:%S')}}</td>
+      <td class="left">{{attach[3]}}</td>
+      <td class="left">{{attach[4]}}</td>
+      <td>
+        <form action="/edit_file" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="task_id" value={{no}}>
+          <input type="hidden" name="number" value={{attach[0]}}>
+          <input type="submit" name="download" value="download">
+          <input type="submit" name="delete" value="delete">
+        </form>
+      </td>
+    </tr>
+  %end
+</table>
 
 % include('footer.tpl')
