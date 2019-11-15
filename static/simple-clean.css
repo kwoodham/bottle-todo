@@ -11,14 +11,14 @@ a:visited {text-decoration:none; color:blue;}
 a:hover {text-decoration:underline; color:#FF704D;}
 a:active {text-decoration:underline;}
 
-p, li {margin-left:10%; width:80%; text-align:justify;}
+p, li {margin-left:10%; width:80%; text-align:justify; color:lightgrey;}
 
 /* pandoc puts header at top of page - don't want this for top page */
 .title, .author, .date {display:none;}
 
 h1 {background-color:#E0E0E0; border: 1px solid grey;}
 h1 {margin-left:10%; width:80%; text-align:center;}
-h2, h3, h4 {margin-left:10%; color:lightgrey}
+h2, h3, h4 {margin-left:10%; color:lightgrey;}
 
 li ul li {margin-left:0%;}
 

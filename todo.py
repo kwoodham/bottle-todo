@@ -21,8 +21,8 @@ def get_states():
     c.close()
     return states
 
-def display_item(no):
 
+def display_item(no):
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
     c.execute("SELECT * FROM todo WHERE todo.id==?", (no,))
@@ -58,12 +58,12 @@ def display_item(no):
 
 app = Bottle()
 
-# URLs /closed - return all
+
 @app.get('/closed')
 def closed_all():
         return closed_list(proj='all', tag='all', state='all')
 
-# URLs of form closed/project/tag/state
+
 @app.get('/closed/<proj>/<tag>/<state>')
 def closed_list(proj, tag, state):
 
@@ -159,19 +159,15 @@ def todo_list(proj, tag, state):
 
     return template('make_table', rows=result, states=get_states())
 
-# URLs of form /new, returns to /project/tag/state list
-@app.get('/new')
-def new_item_form():
-    return template('new_task.tpl', projects=get_projects(), states=get_states())
 
 @app.post('/new')
 def new_item():
 
-    if request.forms.get('cancel')=='cancel':
+    if request.forms.get('cancel'):
 
         return todo_list(proj='all', tag='all', state='all')
 
-    elif request.forms.get('save')=='save':
+    elif request.forms.get('save'):
 
         task = request.forms.get('task').strip()
         project = request.forms.get('project').strip()
@@ -204,8 +200,7 @@ def new_item():
         return todo_list(proj='all', tag='all', state='all')
 
     else:
-
-        print('Should not get here...')
+        return template('new_task.tpl', projects=get_projects(), states=get_states())
 
 
 # URLs /modify - gets number from form and routes to delete or edit
@@ -220,12 +215,10 @@ def modify_item_from_table():
 # URLs /del/number, returns to /project/tag/state list
 @app.get('/del/<no:int>')
 def del_item(no):
-
     if request.GET.confirm_cancel:
         return todo_list(proj='all', tag='all', state='all')
 
     elif request.GET.confirm_delete:
-
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
         c.execute("UPDATE todo SET status = ?, state = ? WHERE id LIKE ?;", (0, "DELETED", no,))
@@ -240,7 +233,6 @@ def del_item(no):
         return todo_list(proj='all', tag='all', state='all')
 
     else:
-
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
         c.execute("SELECT task FROM todo WHERE id LIKE ?", (no,))
@@ -254,32 +246,29 @@ def del_item(no):
 # URL /edit, gets number from form and executes /edit/number
 @app.get('/edit')
 def edit_item_from_table():
-
     if request.GET.edit:
         number = request.GET.number.strip()
         return edit_item(number)
 
 
 @app.post('/edit/<no:int>')
-def edit_item(no):
-    
-    if request.forms.get('cancel')=='cancel':
+def edit_item(no):   
+    if request.forms.get('cancel'):
         return todo_list(proj='all', tag='all', state='all')
 
-    if request.forms.get('top')=='task list':
+    if request.forms.get('top'):
         return todo_list(proj='all', tag='all', state='all')
 
-    elif request.forms.get('new_note')=='new note':
+    elif request.forms.get('new_note'):
         return new_note(no=int(request.forms.get('task_number')))
 
-    elif request.forms.get('new_file')=='new attachment':
+    elif request.forms.get('new_file'):
         return new_file(no=int(request.forms.get('task_number')))
 
-    elif request.forms.get('edit_note')=='edit':
+    elif request.forms.get('edit_note'):
         return edit_note(no=int(request.forms.get('note_number')))
 
-    elif request.forms.get('save')=='save':
-
+    elif request.forms.get('save'):
         task = request.forms.get('task')
         status = request.forms.get('status')
         project = request.forms.get('project')
@@ -316,16 +305,15 @@ def edit_item(no):
         return display_item(no=no)
 
     else:
-
         return display_item(no=no)
 
 @app.post('/new_note/<no:int>')
 def new_note(no):
 
-    if request.forms.get('cancel')=='cancel':
+    if request.forms.get('cancel'):
         return display_item(no=no)
 
-    elif request.forms.get('save')=='save':  
+    elif request.forms.get('save'):  
         note = request.forms.get('note').strip()
 
         conn = sqlite3.connect('todo.db')
@@ -340,18 +328,67 @@ def new_note(no):
         return display_item(no=no)
 
     else:
-
         return template('new_note', no=no)
+
+
+
+@app.get('/edit_note')
+def edit_from_table():
+
+    if request.GET.edit_note:
+        number = int(request.GET.note_number.strip())
+        return edit_note(number)
+
+
+@app.post('/edit_note/<no:int>')
+def edit_note(no):
+
+    if request.forms.get('cancel'):
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+        c.execute("SELECT task_id FROM notes WHERE id==?", (no,))
+        result = c.fetchone()
+        c.close()
+
+        return display_item(no=int(result[0]))
+
+    elif request.forms.get('save'):
+        note = request.forms.get('note').strip()
+
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+
+        c.execute("UPDATE notes SET ledger = ? WHERE id==?", (note, no,))
+        c.execute("SELECT task_id FROM notes WHERE id==?", (no,))
+        task_id = c.fetchone()
+
+        if note == "":
+            c.execute("DELETE FROM notes WHERE id==?;", (no,))
+            
+        conn.commit()
+        c.close()
+
+        return display_item(no=task_id[0])
+
+    else:
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+
+        c.execute("SELECT ledger FROM notes WHERE id==?", (no,))
+        note = c.fetchone()
+
+        conn.commit()
+        c.close()
+        return template('edit_note', no=no, note=note)
 
 
 @app.post('/new_file/<no:int>')
 def new_file(no):
 
-    if request.forms.get('cancel')=='cancel':
+    if request.forms.get('cancel'):
         return display_item(no=no)
 
-    elif request.forms.get('submit')=='submit':  
-
+    elif request.forms.get('submit'):  
         upload = request.files.get('upload')
         save_path = filedir = os.getcwd() + '/files'
         entry_date = datetime.datetime.now().isoformat()
@@ -376,16 +413,8 @@ def new_file(no):
         return display_item(no=no)
 
     else:
-
         return template('new_file', no=no)
 
-
-@app.get('/edit_note')
-def edit_from_table():
-
-    if request.GET.edit_note:
-        number = int(request.GET.note_number.strip())
-        return edit_note(number)
 
 @app.post('/edit_file')
 def edit_file():
@@ -407,7 +436,8 @@ def edit_file():
     # Need a confirmation in here...
     elif request.forms.get('delete'):
         c.execute("DELETE FROM attach WHERE id==?;", (no,))
-        os.remove(filedir + "/" +  a[1])
+        file_path = "{path}/{file}".format(path=filedir, file=a[1])
+        os.remove(file_path)
 
     conn.commit()
     c.close()
@@ -415,47 +445,7 @@ def edit_file():
     task_id = int(request.forms.get('task_id'))
     return display_item(no=task_id)
 
-@app.post('/edit_note/<no:int>')
-def edit_note(no):
 
-    if request.forms.get('cancel')=='cancel':
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
-        c.execute("SELECT task_id FROM notes WHERE id==?", (no,))
-        result = c.fetchone()
-        c.close()
-
-        return display_item(no=int(result[0]))
-
-    elif request.forms.get('save')=='save':
-        note = request.forms.get('note').strip()
-
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
-
-        c.execute("UPDATE notes SET ledger = ? WHERE id==?", (note, no,))
-        c.execute("SELECT task_id FROM notes WHERE id==?", (no,))
-        task_id = c.fetchone()
-
-        if note == "":
-            c.execute("DELETE FROM notes WHERE id==?;", (no,))
-            
-        conn.commit()
-        c.close()
-
-        return display_item(no=task_id[0])
-
-    else:
-
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
-
-        c.execute("SELECT ledger FROM notes WHERE id==?", (no,))
-        note = c.fetchone()
-
-        conn.commit()
-        c.close()
-        return template('edit_note', no=no, note=note)
 
 # From baseline example - need to extend to pull in notes and status table
 @app.get('/item/<item:re:[0-9]+>')
@@ -477,10 +467,12 @@ def show_item(item):
 def help():
     static_file('help.html', root='.')
 
+
 #  Comes from page that showed how to reference css
 @app.get('/static<filename:re:.*\.css>')
 def send_css(filename):
     return static_file(filename, root='static')
+
 
 @app.get('/json<json:re:[0-9]+>')
 def show_json(json):
@@ -506,6 +498,5 @@ def mistake403(code):
 def mistake404(code):
     return 'Sorry, this page does not exist!'
 
-app.run(host='localhost', port=8081, reloader=True, debug=True)
-# remember to remove reloader=True and debug(True) when you move your
-# application from development to a productive environment
+# app.run(host='localhost', port=8081, reloader=True, debug=True)
+app.run(host='localhost', port=8080)

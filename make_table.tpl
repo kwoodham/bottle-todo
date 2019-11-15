@@ -114,8 +114,8 @@
     </form>
 
     <td colspan=2 class="right">
-      <form action="/new" method="get">
-        <input type="submit" name="new" value="new" autofocus>
+      <form action="/new" method="post">
+        <input type="submit" name="new" value="new">
       </form>
     </td>
   </tr>
