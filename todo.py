@@ -2,6 +2,7 @@ import sqlite3
 import datetime
 from bottle import Bottle, route, run, debug, template, request, static_file, error
 import os
+import json
 
 def get_projects():
     conn = sqlite3.connect('todo.db')
@@ -451,16 +452,16 @@ def edit_file():
 @app.get('/item/<item:re:[0-9]+>')
 def show_item(item):
 
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
-        c.execute("SELECT task FROM todo WHERE id LIKE ?", (item,))
-        result = c.fetchone()
-        c.close()
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT task FROM todo WHERE id LIKE ?", (item,))
+    result = c.fetchone()
+    c.close()
 
-        if not result:
-            return 'This item number does not exist!'
-        else:
-            return 'Task: %s' % result[0]
+    if not result:
+        return 'This item number does not exist!'
+    else:
+        return 'Task: %s' % result[0]
 
 
 @app.get('/help')
@@ -474,19 +475,34 @@ def send_css(filename):
     return static_file(filename, root='static')
 
 
-@app.get('/json<json:re:[0-9]+>')
-def show_json(json):
+# https://stackoverflow.com/questions/7831371/is-there-a-way-to-get-a-list-of-column-names-in-sqlite
+# https://stackoverflow.com/questions/23110383/how-to-dynamically-build-a-json-object-with-python
+@app.get('/json/<item:re:[0-9]+>')
+def show_json(item):
 
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    c.execute("SELECT * FROM todo WHERE id LIKE ?", (json,))
-    result = c.fetchall()
+    c.execute("SELECT * FROM todo WHERE id LIKE ?", (item,))
+    result = c.fetchone()
+    names = [description[0] for description in c.description]
     c.close()
 
     if not result:
         return {'task': 'This item number does not exist!'}
     else:
-        return {{'task': result[0]}, {'status': result[1]}, {'project': result[2]}, {'tag': result[3]}, {'state': result[4]}}
+        out = {}
+        for i in range(len(names)):
+            out[names[i]] = result[i]
+        
+        # Change 1/0 status to open/closed
+        if out['status'] == 1:
+            out['status'] = 'open'
+        else:
+            out['status'] = 'closed'
+
+        json_out = json.dumps(out)
+        return json_out # returning dumps() directly causes an error
+
 
 
 @error(403)
