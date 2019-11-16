@@ -15,7 +15,6 @@
     <th><b>project</b></th>
     <th><b>tag</b></th>
     <th><b>state</b></th>
-    <th><b>date</b></th>
     <th><b>age</b></th>
     <th><b>due</b></th>
     <th border-top-right-radius: 15px><b>days</b></th>
@@ -33,7 +32,6 @@
   <td><font color={{tint}}>{{row[2]}}</font></td>
   <td><font color={{tint}}>{{row[3]}}</font></td>
   <td><font color={{tint}}>{{row[4]}}</font></td>
-  <td><font color={{tint}}>{{date_in.strftime('%Y-%m-%d')}}</font></td>
 
 
   %dif = datetime.date.today() - date_in
@@ -51,7 +49,7 @@
   </tr>
 %end
 
-  <tr><td colspan=9> </td></tr>
+  <tr><td colspan=8> </td></tr>
 
   <tr>
     <form action="/modify" method="get">
@@ -110,7 +108,7 @@
         </select>
       </td>
 
-      <td class="left" colspan=2><input type="submit" name="filter" value="filter"></td>
+      <td class="left"><input type="submit" name="filter" value="filter"></td>
     </form>
 
     <td colspan=2 class="right">
