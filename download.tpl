@@ -1,12 +1,6 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-<title>download file</title>
-</head>
-<body>
+%include('header.tpl', title='download')
 <form action="/download" method="POST">
    <input type="text" name="record" value="">
    <input type="submit" name="submit" value="submit">
 </form>
-</body>
-</html>
+%include('footer.tpl')

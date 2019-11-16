@@ -28,11 +28,10 @@
   %date_in  = datetime.datetime.fromisoformat(row[6]).date()
 
   <td><font color={{tint}}>{{row[0]}}</font></td> 
-  <td class="left"><font color={{tint}}>{{row[1]}}</font></td>
+  <td class="left"><a href='/edit/{{row[0]}}'><font color={{tint}}>{{row[1]}}</font></a></td>
   <td><font color={{tint}}>{{row[2]}}</font></td>
   <td><font color={{tint}}>{{row[3]}}</font></td>
   <td><font color={{tint}}>{{row[4]}}</font></td>
-
 
   %dif = datetime.date.today() - date_in
   <td><font color={{tint}}>{{dif.days}}</font></td>
@@ -52,20 +51,7 @@
   <tr><td colspan=8> </td></tr>
 
   <tr>
-    <form action="/modify" method="get">
-      <td><select name="number">
-        %for row in rows:
-          <option>{{row[0]}}</option>
-        %end
-        </select>
-      </td>
-
-      <td class="left">
-        <input type="submit" name="edit" value="edit">
-        <input type="submit" name="delete" value="delete">
-      </td>
-    </form>
-
+    <td colspan=2></td>
     <form action="/filter" method="POST" enctype="multipart/form-data">
       %table_p = []
       %table_t = []
@@ -113,7 +99,7 @@
 
     <td colspan=2 class="right">
       <form action="/new" method="post">
-        <input type="submit" name="new" value="new">
+        <input type="submit" name="new" value="+">
       </form>
     </td>
   </tr>

@@ -11,42 +11,54 @@ a:visited {text-decoration:none; color:blue;}
 a:hover {text-decoration:underline; color:#FF704D;}
 a:active {text-decoration:underline;}
 
-p, li {margin-left:10%; width:80%; text-align:justify; color:lightgrey;}
+p, li {margin-left:10%; width:80%; text-align:justify;}
 
 /* pandoc puts header at top of page - don't want this for top page */
 .title, .author, .date {display:none;}
 
 h1 {background-color:#E0E0E0; border: 1px solid grey;}
 h1 {margin-left:10%; width:80%; text-align:center;}
-h2, h3, h4 {margin-left:10%; color:lightgrey;}
+h2, h3, h4 {margin-left:10%; color:lightgrey}
 
 li ul li {margin-left:0%;}
 
-table
-{
-border: 1px solid #D8D8D8;
-border-collapse:collapse;
-width:80%;
-margin-left:10%;
+
+/* https://tympanus.net/codrops/2015/09/15/styling-customizing-file-inputs-smart-way/ */
+.inputfile {
+    /* font-size: 1.25em; */
+    /* font-weight: 700; */
+    color: lightgrey;
+    background-color: grey;
+    display: inline-block;
 }
-th
-{
-background-color:grey;
-color:#FAFAFA;
+
+select, button {
+  /* width: 100px; */
+  margin: 5;
+  box-sizing: border-box;
 }
-td
-{
-color:#FAFAFA;
-padding:5px;
-text-align:center;
-vertical-align:top;
+
+table {
+  border: 1px solid #D8D8D8;
+  border-collapse:collapse;
+  width:80%;
+  margin-left:10%;
 }
-tr
-.left
-{
-text-align:left;
+
+.borderless { border: none;}
+
+th {
+  background-color:grey;
+  color:#FAFAFA;
 }
-.right
-{
-text-align:right;
+
+td {
+  color:#FAFAFA;
+  padding:5px;
+  text-align:center;
+  vertical-align:top;
 }
+
+tr .left { text-align:left; }
+tr .right { text-align:right; }
+

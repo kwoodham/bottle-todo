@@ -52,9 +52,17 @@ def display_item(no):
     conn.commit()
     c.close()       
 
-    return template('edit_task', old=cur_data, 
-        old_status=cur_status, no=no, projects=get_projects(), 
-        states=get_states(), notes=ledger_data, attachments=attach_data)
+    if cur_status=='open':
+
+        return template('edit_task', old=cur_data, 
+            old_status=cur_status, no=no, projects=get_projects(), 
+            states=get_states(), notes=ledger_data, attachments=attach_data)
+
+    else:
+
+        return template('view_task', old=cur_data, 
+            old_status=cur_status, no=no, projects=get_projects(), 
+            states=get_states(), notes=ledger_data, attachments=attach_data)
 
 
 app = Bottle()
@@ -67,10 +75,10 @@ def closed_all():
 
 @app.get('/closed/<proj>/<tag>/<state>')
 def closed_list(proj, tag, state):
-
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    sql = """SELECT id, task, project, tag, state, date_due FROM todo WHERE todo.status LIKE '0'"""
+    sql = """SELECT id, task, project, tag, state, date_due 
+          FROM todo WHERE todo.status LIKE '0'"""
 
     # see https://www.tutorialspoint.com/python/python_tuples.htm 
     arg = ()
@@ -87,7 +95,8 @@ def closed_list(proj, tag, state):
     c.execute(sql, arg)      
     result = c.fetchall()
 
-    sql = """SELECT task_id, entry_date FROM history WHERE task_id==? AND ledger LIKE 'CLOSED%'"""
+    sql = """SELECT task_id, entry_date 
+          FROM history WHERE task_id==? AND ledger LIKE 'CLOSED%'"""
 
     i = 0
     for row in result:
@@ -100,15 +109,29 @@ def closed_list(proj, tag, state):
     conn.commit()
     c.close()
 
+    # I can't use ORDERBY in sql because I don't have the right field to index
+    # until the closed dates are appended to each list item, and that doesn 't
+    # happen until the second sql where I match things up using the task id.
+
+    # Get a list of the "closed" dates in the order they appear in result list
+    a = [result[i][6] for i in range(len(result))]
+
+    # Get the sorted index that the result list needs to be reindexed to 
+    # https://stackoverflow.com/questions/7851077/how-to-return-index-of-a-sorted-list
+    sort_index = sorted(range(len(a)), key=lambda k: a[k], reverse=True)
+
+    # Apply the sort index to the result table
+    # https://stackoverflow.com/questions/2177590/how-can-i-reorder-a-list
+    result = [result[i] for i in sort_index]
+
     return template('make_table_closed', rows=result)
 
 
-# URLs /todo - return all
 @app.get('/todo')
 def todo_all():
         return todo_list(proj='all', tag='all', state='all')
 
-# URLs /filter
+
 @app.post('/filter')
 def todo_filter():
     project = request.forms.get('project').strip()
@@ -123,10 +146,9 @@ def todo_filter():
 
     return todo_list(proj=project, tag=tag, state=state)
 
-# URLs of form todo/project/tag/state
+
 @app.get('/todo/<proj>/<tag>/<state>')
 def todo_list(proj, tag, state):
-
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
     sql = """SELECT id, task, project, tag, state, date_due FROM todo WHERE todo.status LIKE '1'"""
@@ -163,13 +185,10 @@ def todo_list(proj, tag, state):
 
 @app.post('/new')
 def new_item():
-
     if request.forms.get('cancel'):
-
         return todo_list(proj='all', tag='all', state='all')
 
     elif request.forms.get('save'):
-
         task = request.forms.get('task').strip()
         project = request.forms.get('project').strip()
         tag = request.forms.get('tag').strip()
@@ -204,16 +223,6 @@ def new_item():
         return template('new_task.tpl', projects=get_projects(), states=get_states())
 
 
-# URLs /modify - gets number from form and routes to delete or edit
-@app.get('/modify')
-def modify_item_from_table():
-    number = request.GET.number.strip()
-    if request.GET.delete:
-        return del_item(number)
-    elif request.GET.edit:
-        return edit_item(number)
-
-# URLs /del/number, returns to /project/tag/state list
 @app.get('/del/<no:int>')
 def del_item(no):
     if request.GET.confirm_cancel:
@@ -242,15 +251,23 @@ def del_item(no):
 
         return template('del_task.tpl', task=task_text, no=no)
 
+# Support synonyms for edit: view, modify...
+@app.get('/view/<no:int>')
+def view_item(no):
+    return display_item(no=no)
 
+@app.get('/modify/<no:int>')
+def modify_item(no):
+    return display_item(no=no)
 
-# URL /edit, gets number from form and executes /edit/number
+@app.get('/edit/<no:int>')
+def edit_item_get_url(no):
+    return display_item(no=no)
+
 @app.get('/edit')
-def edit_item_from_table():
-    if request.GET.edit:
-        number = request.GET.number.strip()
-        return edit_item(number)
-
+def edit_item_get_form():
+    no = request.GET.number.strip()
+    return display_item(no=no)
 
 @app.post('/edit/<no:int>')
 def edit_item(no):   
@@ -305,12 +322,14 @@ def edit_item(no):
 
         return display_item(no=no)
 
+    elif request.forms.get('delete'):
+        return del_item(no=int(request.forms.get('task_number')))
+
     else:
         return display_item(no=no)
 
 @app.post('/new_note/<no:int>')
 def new_note(no):
-
     if request.forms.get('cancel'):
         return display_item(no=no)
 
@@ -335,7 +354,6 @@ def new_note(no):
 
 @app.get('/edit_note')
 def edit_from_table():
-
     if request.GET.edit_note:
         number = int(request.GET.note_number.strip())
         return edit_note(number)
@@ -343,7 +361,6 @@ def edit_from_table():
 
 @app.post('/edit_note/<no:int>')
 def edit_note(no):
-
     if request.forms.get('cancel'):
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
@@ -419,13 +436,11 @@ def new_file(no):
 
 @app.post('/edit_file')
 def edit_file():
-
     no = int(request.forms.get('number'))
     filedir = os.getcwd() + '/files'
 
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-
 
     sql = """SELECT id, isoname, filename, filetype FROM attach WHERE id==?"""
     c.execute(sql, (no,))
@@ -445,7 +460,6 @@ def edit_file():
 
     task_id = int(request.forms.get('task_id'))
     return display_item(no=task_id)
-
 
 
 # From baseline example - need to extend to pull in notes and status table
