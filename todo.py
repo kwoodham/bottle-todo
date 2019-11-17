@@ -182,6 +182,10 @@ def todo_list(proj, tag, state):
 
     return template('make_table', rows=result, states=get_states())
 
+@app.get('/new')
+def new_get():
+    return template('new_task.tpl', projects=get_projects(), states=get_states())
+
 
 @app.post('/new')
 def new_item():
