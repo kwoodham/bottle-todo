@@ -46,9 +46,13 @@
       %date_due = datetime.datetime.fromisoformat(old[0][6])
       <td><input type="date" size="20" maxlength="20" name="date_due" value={{date_due.strftime('%Y-%m-%d')}}></td>
     </tr>
+  </table>
 
+  <p></p>
+
+  <table class="borderless">
     <tr>
-      <td colspan=6>
+      <td>
         <input type="hidden" name="task_number" value={{no}}>
         <input type="submit" name="save" value="save">
         <input type="submit" name="delete" value="delete">
@@ -58,13 +62,10 @@
         <input type="submit" name="new_file" value="new attachment">
       </td>
     </tr>
-
-  <table>
+  </table>
 </form>
 
-</br>
-</br>
-</hr>
+<p></p>
   
 <table>
   <tr>
@@ -95,10 +96,9 @@
   %end
 </table>
 
-</br>
-</br>
-</hr>
-  
+<p></p>
+
+%if len(attachments):
 <table>
   <tr>
     <th width=120px><b>date</b></th>
@@ -108,23 +108,25 @@
     <th><b>action</b></th>
   </tr>
 
+
   %for attach in attachments:
-    <tr>  
-      %entry_date = datetime.datetime.fromisoformat(attach[2])
-      <td>{{entry_date.strftime('%Y-%m-%d')}}</td>
-      <td>{{entry_date.strftime('%H:%M:%S')}}</td>
-      <td class="left">{{attach[3]}}</td>
-      <td class="left">{{attach[4]}}</td>
-      <td>
-        <form action="/edit_file" method="POST" enctype="multipart/form-data">
-          <input type="hidden" name="task_id" value={{no}}>
-          <input type="hidden" name="number" value={{attach[0]}}>
-          <input type="submit" name="download" value="download">
-          <input type="submit" name="delete" value="delete">
-        </form>
-      </td>
-    </tr>
+  <tr>  
+    %entry_date = datetime.datetime.fromisoformat(attach[2])
+    <td>{{entry_date.strftime('%Y-%m-%d')}}</td>
+    <td>{{entry_date.strftime('%H:%M:%S')}}</td>
+    <td class="left">{{attach[3]}}</td>
+    <td class="left">{{attach[4]}}</td>
+    <td>
+      <form action="/edit_file" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="task_id" value={{no}}>
+        <input type="hidden" name="number" value={{attach[0]}}>
+        <input type="submit" name="download" value="download">
+        <input type="submit" name="delete" value="delete">
+      </form>
+    </td>
+  </tr>
   %end
 </table>
+%end
 
 % include('footer.tpl')

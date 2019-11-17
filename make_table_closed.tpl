@@ -15,7 +15,7 @@
 
   <tr>
     <td>{{row[0]}}</td> 
-    <td class="left"><a href='/edit/{{row[0]}}'><font color='lightgrey'>{{row[1]}}</font></a></td>
+    <td class="left"><a href='/view/{{row[0]}}'><font color='lightgrey'>{{row[1]}}</font></a></td>
     <td>{{row[2]}}</td>
     <td>{{row[3]}}</td>
     <td>{{row[4]}}</td>

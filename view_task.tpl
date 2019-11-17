@@ -3,43 +3,46 @@
 
 
 
-  <table>
-    <tr>
-      <th><b>text</b></th>
-      <th><b>status</b></th>
-      <th><b>project</b></th>
-      <th><b>tag</b></th>
-      <th><b>state</b></th>
-      <th><b>due</b></th>
-    </tr>
+<table>
+  <tr>
+    <th><b>text</b></th>
+    <th><b>status</b></th>
+    <th><b>project</b></th>
+    <th><b>tag</b></th>
+    <th><b>state</b></th>
+    <th><b>due</b></th>
+  </tr>
 
-    <tr>
-      <td width=40% class="left">{{old[0][1]}}</td>
-      <td>{{old_status}}</td>
-      <td>{{old[0][3]}}</td>        
-      <td>{{old[0][4]}}</td>
-      <td>{{old[0][5]}}</td>
-      %date_due = datetime.datetime.fromisoformat(old[0][6])
-      <td>{{date_due.strftime('%Y-%m-%d')}}</td>
-    </tr>
+  <tr>
+    <td width=40% class="left">{{old[0][1]}}</td>
+    <td>{{old_status}}</td>
+    <td>{{old[0][3]}}</td>        
+    <td>{{old[0][4]}}</td>
+    <td>{{old[0][5]}}</td>
+    %date_due = datetime.datetime.fromisoformat(old[0][6])
+    <td>{{date_due.strftime('%Y-%m-%d')}}</td>
+  </tr>
+</table>
 
-    <tr>
-      <td colspan=6>
-        <form action="/todo" method="GET">
-          <input type="submit" name="top" value="open task list">        
-        </form>
-        <form action="/closed" method="GET">
-          <input type="submit" name="top" value="closed task list">        
-        </form>
-      </td>
-    </tr>
-  <table>
+<p></p>
 
+<table class="borderless">
+  <tr>
+    <td width=50% class="right">
+      <form action="/todo" method="GET">
+        <input type="submit" name="top" value="open task list">        
+      </form>
+    </td>
+    <td class="left">
+      <form action="/closed" method="GET">
+        <input type="submit" name="top" value="closed task list">        
+      </form>
+    </td>
+  </tr>
+</table>
 
-</br>
-</br>
-</hr>
-  
+<p></p>
+
 <table>
   <tr>
     <th width=120px><b>date</b></th>
@@ -57,10 +60,9 @@
   %end
 </table>
 
-</br>
-</br>
-</hr>
-  
+<p></p>
+
+%if len(attachments):
 <table>
   <tr>
     <th width=120px><b>date</b></th>
@@ -87,5 +89,6 @@
     </tr>
   %end
 </table>
+%end
 
 % include('footer.tpl')
