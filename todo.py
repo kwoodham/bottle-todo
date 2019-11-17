@@ -291,12 +291,26 @@ def edit_item(no):
         return edit_note(no=int(request.forms.get('note_number')))
 
     elif request.forms.get('save'):
-        task = request.forms.get('task')
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
+
+        # get previous information about the task so that I can record what's changed in the ledger
+        c.execute( """SELECT * FROM TODO WHERE id LIKE ?""",(no,) )
+        a = c.fetchone()
+        old_task = a[1].strip() 
+        old_status = a[2]
+        old_project = a[3].strip()
+        old_tag = a[4].strip()
+        old_state = a[5].strip()
+        old_date_due = a[6].strip()
+
+        # get the new information from the form:
+        task = request.forms.get('task').strip()
         status = request.forms.get('status')
-        project = request.forms.get('project')
-        tag = request.forms.get('tag')
-        state = request.forms.get('state')
-        date_due = request.forms.get('date_due')
+        project = request.forms.get('project').strip()
+        tag = request.forms.get('tag').strip()
+        state = request.forms.get('state').strip()
+        date_due = request.forms.get('date_due').strip()
         if date_due == '':
             date_due = '2000-01-01'
 
@@ -305,20 +319,37 @@ def edit_item(no):
         else:
             status = 0
 
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
+        # Update the todo table
         sql = """UPDATE todo 
             SET task = ?, status = ?, project = ?, tag = ?, state = ?, date_due = ?
             WHERE id LIKE ?"""
         c.execute(sql, (task, status, project, tag, state, date_due, no))
 
+        # Set up the ledger text to append to the history entry (don't use elif in order
+        # to catch changes in more than one field at a time)
+        ledger_text = " | "
+        if old_task != task:
+            ledger_text = ledger_text + "task:" + old_task + "-->" + task + "; "
+        if old_status != status:
+            ledger_text = ledger_text + "status:" + str(old_status) + "-->" + str(status) + "; "
+        if old_project != project:
+            ledger_text = ledger_text + "project:" + old_project + "-->" + project + "; "
+        if old_tag != tag:
+            ledger_text = ledger_text + "tag:" + old_tag + "-->" + tag + "; "
+        if old_state != state:
+            ledger_text = ledger_text + "state:" + old_state + "-->" + state + "; "
+        if old_date_due != date_due:
+            ledger_text = ledger_text + "date_due:" + old_date_due + "-->" + date_due + "; "
+        if ledger_text == " | ":
+            ledger_text = ledger_text + "saved with no changes"
+
+        # Write out the ledger for closed or edited (but not closed) tasks
         if status == 0:
             sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
-            arg = (no, datetime.datetime.now().isoformat(), "CLOSED - " + state)
-
+            arg = (no, datetime.datetime.now().isoformat(), "CLOSED - " + state + ledger_text)
         else:
             sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
-            arg = (no, datetime.datetime.now().isoformat(), "EDITED - " + state)
+            arg = (no, datetime.datetime.now().isoformat(), "EDITED - " + state + ledger_text)
 
         c.execute(sql, arg)
         conn.commit()
@@ -429,6 +460,11 @@ def new_file(no):
                  'description', 'filesize', 'filetype', 'isoname') VALUES (?, ?, ?, ?, ?, ?,?)"""
         arg = (no, entry_date, upload.filename, description, filesize, upload.content_type, isoname)
         c.execute(sql, arg)
+
+        sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
+        arg = (no, datetime.datetime.now().isoformat(), "EDITED - attach file: " + upload.filename)
+        c.execute(sql, arg)
+
         conn.commit()
         c.close()
 
@@ -453,16 +489,22 @@ def edit_file():
     if request.forms.get('download'):
         return static_file(a[1], root=filedir, download=a[2], mimetype=a[3])
 
+
     # Need a confirmation in here...
     elif request.forms.get('delete'):
         c.execute("DELETE FROM attach WHERE id==?;", (no,))
         file_path = "{path}/{file}".format(path=filedir, file=a[1])
         os.remove(file_path)
 
+        task_id = int(request.forms.get('task_id'))
+        sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
+        arg = (task_id, datetime.datetime.now().isoformat(), "EDITED - remove file: " + a[2])
+        c.execute(sql, arg)
+
     conn.commit()
     c.close()
 
-    task_id = int(request.forms.get('task_id'))
+
     return display_item(no=task_id)
 
 
