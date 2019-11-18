@@ -278,9 +278,6 @@ def edit_item(no):
     if request.forms.get('cancel'):
         return todo_list(proj='all', tag='all', state='all')
 
-    if request.forms.get('top'):
-        return todo_list(proj='all', tag='all', state='all')
-
     elif request.forms.get('new_note'):
         return new_note(no=int(request.forms.get('task_number')))
 
