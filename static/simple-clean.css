@@ -1,9 +1,14 @@
+@import url(https://fonts.googleapis.com/css?family=Amatic+SC);
+
+body, table, input, select, button{
+  font-family: 'Amatic SC';
+  font-size: 36px;
+}
+
 body {
-  font-family: "Lucida Console", Monaco, monospace;
   background-color:#263238;
   margin: 0 auto;
   padding: 1em;
-  font-size: 100%;
 }
 
 a:link {text-decoration:none; color:blue;}
@@ -25,20 +30,12 @@ li ul li {margin-left:0%;}
 
 /* https://tympanus.net/codrops/2015/09/15/styling-customizing-file-inputs-smart-way/ */
 .inputfile {
-    /* font-size: 1.25em; */
-    /* font-weight: 700; */
     color: lightgrey;
     background-color: grey;
     display: inline-block;
 }
 
-/* https://stackoverflow.com/questions/9101411/html-input-font/9101493#9101493 */
-body, input {
-  font-family: 'Roboto', Arial, Lucida Grande, sans-serif;
-  font-size: 14px;   /* if that’s what you want... */
-}
-
-select, button {
+input, select, button {
   margin: 5;
   box-sizing: border-box;
 }
