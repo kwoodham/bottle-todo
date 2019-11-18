@@ -32,8 +32,13 @@ li ul li {margin-left:0%;}
     display: inline-block;
 }
 
+/* https://stackoverflow.com/questions/9101411/html-input-font/9101493#9101493 */
+body, input {
+  font-family: 'Roboto', Arial, Lucida Grande, sans-serif;
+  font-size: 14px;   /* if that’s what you want... */
+}
+
 select, button {
-  /* width: 100px; */
   margin: 5;
   box-sizing: border-box;
 }
