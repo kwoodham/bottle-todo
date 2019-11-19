@@ -56,7 +56,7 @@
         <input type="hidden" name="task_number" value={{no}}>
         <input type="submit" name="save" value="save">
         <input type="submit" name="delete" value="delete">
-        <input type="submit" name="cancel" value="cancel">            
+        <input type="submit" name="cancel" value="back">            
         <input type="submit" name="new_note" value="new note">
         <input type="submit" name="new_file" value="new attachment">
       </td>

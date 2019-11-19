@@ -1,4 +1,4 @@
-% include('header.tpl', title='New Note')
+% include('header.tpl', title='Edit Note for Task %s' % no)
 
 <form action="/edit_note/{{no}}" method="POST" enctype="multipart/form-data">
   <h3>Edit note - saving a cleared note deletes it</h3>
