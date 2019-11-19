@@ -1,7 +1,10 @@
-@import url(https://fonts.googleapis.com/css?family=Amatic+SC);
+@import url(http://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400italic,700,700italic&subset=latin,latin-ext);
+/* @import url(https://fonts.googleapis.com/css?family=Amatic+SC); */
+
 
 body, table, input, select, button{
-  font-family: 'Amatic SC';
+  /* font-family: 'Amatic SC'; */
+  font-family: 'Quattrocento Sans', sans-serif;
   font-size: 24px;
 }
 
