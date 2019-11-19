@@ -1,4 +1,4 @@
-% include('header.tpl', title='New Note')
+% include('header.tpl', title='New Note for Task %s' % no)
 
 <form action="/new_note/{{no}}" method="POST"  enctype="multipart/form-data">
   <table>

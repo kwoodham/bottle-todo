@@ -1,11 +1,11 @@
-%include('header.tpl', title='upload for task {{no}}')
+%include('header.tpl', title='File Upload for Task  %s' % no)
 <form action="/new_file/{{no}}" method="POST" enctype="multipart/form-data">
 <table>
   <tr>
     <th colspan=2>Attach File</th>
   <tr>
     <td width=50% class=right>File:</td>
-    <td class=left><input type="file" name="upload" class="inputfile"> </td>
+    <td class=left><input type="file" name="upload" class="custom-file-input"> </td>
   </tr>
   <tr>
     <td class=right>Description:</td>
