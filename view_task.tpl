@@ -58,7 +58,7 @@
 
       <!-- make clickable notes that are links -->
       <!-- https://stackoverflow.com/questions/15551779/open-link-in-new-tab-or-window -->
-      %if note[3][0:4]=='http':
+      %if ( note[3][0:5]=='http:' ) or ( note[3][0:6]=='https:' ) or ( note[3][0:8]=='outlook:' ):
         <td class="left"><a target="_blank" rel="noopener noreferrer" href={{note[3]}}>{{note[3]}}</a></td>
       %else:
         <td class="left">{{note[3]}}</td>
