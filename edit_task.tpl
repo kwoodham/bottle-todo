@@ -78,7 +78,13 @@
       %entry_date = datetime.datetime.fromisoformat(note[2])
       <td>{{entry_date.strftime('%Y-%m-%d')}}</td>
       <td>{{entry_date.strftime('%H:%M:%S')}}</td>
-      <td class="left">{{note[3]}}</td>
+
+      <!-- make clickable notes that are links -->
+      %if note[3][0:4]=='http':
+        <td class="left"><a href={{note[3]}}>{{note[3]}}</a></td>
+      %else:
+        <td class="left">{{note[3]}}</td>
+      %end
 
       %test = note[3].split()
       %if test[0] not in ['OPENED', 'EDITED', 'CLOSED']:
