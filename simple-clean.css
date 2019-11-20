@@ -1,0 +1,80 @@
+@import url(http://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400italic,700,700italic&subset=latin,latin-ext);
+/* @import url(https://fonts.googleapis.com/css?family=Amatic+SC); */
+
+
+body, table, input, select, button{
+  /* font-family: 'Amatic SC'; */
+  font-family: 'Quattrocento Sans', sans-serif;
+  font-size: 18px;
+}
+
+body {
+  background-color:#263238;
+  margin: 0 auto;
+  padding: 1em;
+}
+
+a:link {text-decoration:none; color:lightgrey;}
+a:visited {text-decoration:none; color:lightgrey;}
+a:hover {text-decoration:underline; color:#FF704D;}
+a:active {text-decoration:underline;}
+
+p, li {margin-left:5%; width:90%; text-align:justify;}
+
+/* pandoc puts header at top of page - don't want this for top page */
+.title, .author, .date {display:none;}
+
+h1 {background-color:#E0E0E0; border: 1px solid grey;}
+h1 {margin-left:5%; width:90%; text-align:center;}
+h2, h3, h4 {margin-left:5%; color:lightgrey}
+
+li ul li {margin-left:0%;}
+
+/* https://stackoverflow.com/questions/1944267/how-to-change-the-button-text-of-input-type-file */
+/* I think this is just for Chrome */
+.custom-file-input::-webkit-file-upload-button {
+  visibility: hidden;
+  width: 1%; /* sets the width of the hidden button */
+  content: ''; /* This is the "Choose File" button text */
+  display: block;
+  border: 0px;
+  outline: none;
+}
+
+/* https://tympanus.net/codrops/2015/09/15/styling-customizing-file-inputs-smart-way/ */
+/* This is cross-platform, but doesn't look as good as above solution for Chrome */
+.inputfile {
+    color: lightgrey;
+    background-color: grey;
+    display: inline-block;
+}
+
+input, select, button {
+  margin: 5;
+  box-sizing: border-box;
+}
+
+table {
+  border: 1px solid #D8D8D8;
+  border-collapse:collapse;
+  width:90%;
+  margin-left:5%;
+}
+
+.borderless { border: none;}
+
+th {
+  background-color:grey;
+  color:#FAFAFA;
+}
+
+td {
+  color:#FAFAFA;
+  padding:5px;
+  text-align:center;
+  vertical-align:top;
+}
+
+tr .left { text-align:left; }
+tr .right { text-align:right; }
+

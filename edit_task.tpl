@@ -80,8 +80,9 @@
       <td>{{entry_date.strftime('%H:%M:%S')}}</td>
 
       <!-- make clickable notes that are links -->
+      <!-- https://stackoverflow.com/questions/15551779/open-link-in-new-tab-or-window -->
       %if note[3][0:4]=='http':
-        <td class="left"><a href={{note[3]}}>{{note[3]}}</a></td>
+        <td class="left"><a target="_blank" rel="noopener noreferrer" href={{note[3]}}>{{note[3]}}</a></td>
       %else:
         <td class="left">{{note[3]}}</td>
       %end
