@@ -5,7 +5,7 @@
 body, table, input, select, button{
   /* font-family: 'Amatic SC'; */
   font-family: 'Quattrocento Sans', sans-serif;
-  font-size: 24px;
+  font-size: 18px;
 }
 
 body {
@@ -14,8 +14,8 @@ body {
   padding: 1em;
 }
 
-a:link {text-decoration:none; color:blue;}
-a:visited {text-decoration:none; color:blue;}
+a:link {text-decoration:none; color:lightgrey;}
+a:visited {text-decoration:none; color:lightgrey;}
 a:hover {text-decoration:underline; color:#FF704D;}
 a:active {text-decoration:underline;}
 
