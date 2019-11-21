@@ -156,14 +156,16 @@ def todo_list(proj, tag, state):
     # see https://www.tutorialspoint.com/python/python_tuples.htm 
     arg = ()
     if proj != "all":
-        sql = sql + " AND project LIKE ?"
-        arg = arg + (proj,)
+        sql += " AND project LIKE ?"
+        arg += (proj,)
     if tag != "all":
-        sql = sql + " AND tag LIKE ?"
-        arg = arg + (tag,)
+        sql += " AND tag LIKE ?"
+        arg += (tag,)
     if state != "all":
-        sql = sql + " AND state LIKE ?"
-        arg = arg + (state,)
+        sql += " AND state LIKE ?"
+        arg += (state,)
+
+    sql += " ORDER BY date_due ASC;"
 
     c.execute(sql, arg)      
     result = c.fetchall()

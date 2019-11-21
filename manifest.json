@@ -1,0 +1,16 @@
+{
+	"name": "Todo",
+	"version": "0.1",
+	"manifest_version": 2,
+	"description": "My personal todo program!",
+	"app":{
+		"urls": ["http://kwoodham.sdf.org/todo"],
+		"launch":{
+			"web_url": "http://localhost:8080/todo/all/all/all"
+		}
+	},
+	"icons": {
+		"128": "text_x_todo.png"
+	}
+}
+
