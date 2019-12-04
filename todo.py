@@ -3,6 +3,8 @@ import datetime
 from bottle import Bottle, route, run, debug, template, request, static_file, error
 import os
 import json
+import tomd
+import json2table
 
 def get_projects():
     conn = sqlite3.connect('todo.db')
@@ -164,6 +166,8 @@ def todo_list(proj, tag, state):
     if state != "all":
         sql = sql + " AND state LIKE ?"
         arg = arg + (state,)
+        
+    sql += "ORDER BY date_due ASC;"
 
     c.execute(sql, arg)      
     result = c.fetchall()
@@ -181,6 +185,33 @@ def todo_list(proj, tag, state):
     c.close()
 
     return template('make_table', rows=result, states=get_states())
+
+@app.get('/json')
+def json_list():
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+
+    sql = """SELECT id FROM todo WHERE todo.status LIKE '1' ORDER BY todo.date_due ASC;"""
+    c.execute(sql)      
+    result = c.fetchall()
+
+    out_table = []
+
+    for row in result:
+        c.execute("SELECT * FROM todo WHERE id LIKE ?", (row[0],))
+        result = c.fetchone()
+        names = [description[0] for description in c.description]
+
+        out = {}
+        for i in range(len(names)):
+            out[names[i]] = result[i]
+
+        # json_out = json.dumps(out)
+        # out_table.append(json_out)
+        out_table.append(out)
+    c.close()
+
+    return template('make_json_table.tpl', rows=out_table)
 
 @app.get('/new')
 def new_get():
