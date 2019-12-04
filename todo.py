@@ -1,7 +1,8 @@
 import sqlite3
 import datetime
-from bottle import route, run, debug, template, request, static_file, error
-import datetime
+from bottle import Bottle, route, run, debug, template, request, static_file, error
+import os
+import json
 
 def get_projects():
     conn = sqlite3.connect('todo.db')
@@ -21,8 +22,8 @@ def get_states():
     c.close()
     return states
 
-def display_item(no):
 
+def display_item(no):
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
     c.execute("SELECT * FROM todo WHERE todo.id==?", (no,))
@@ -41,24 +42,43 @@ def display_item(no):
     c.execute(sql,(no,no,))
     ledger_data = c.fetchall()
 
+    sql = """SELECT id, task_id, entry_date, filename, 
+        description, filesize, filetype FROM attach WHERE task_id==?
+        ORDER BY entry_date DESC;"""
+
+    c.execute(sql,(no,))
+    attach_data = c.fetchall()
+
     conn.commit()
     c.close()       
 
-    return template('edit_task', old=cur_data, old_status=cur_status, no=no, projects=get_projects(), states=get_states(), notes=ledger_data)
+    if cur_status=='open':
+
+        return template('edit_task', old=cur_data, 
+            old_status=cur_status, no=no, projects=get_projects(), 
+            states=get_states(), notes=ledger_data, attachments=attach_data)
+
+    else:
+
+        return template('view_task', old=cur_data, 
+            old_status=cur_status, no=no, projects=get_projects(), 
+            states=get_states(), notes=ledger_data, attachments=attach_data)
 
 
-# URLs /closed - return all
-@route('/closed',  method='GET')
+app = Bottle()
+
+
+@app.get('/closed')
 def closed_all():
         return closed_list(proj='all', tag='all', state='all')
 
-# URLs of form closed/project/tag/state
-@route('/closed/<proj>/<tag>/<state>')
-def closed_list(proj, tag, state):
 
+@app.get('/closed/<proj>/<tag>/<state>')
+def closed_list(proj, tag, state):
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    sql = """SELECT id, task, project, tag, state, date_due FROM todo WHERE todo.status LIKE '0'"""
+    sql = """SELECT id, task, project, tag, state, date_due 
+          FROM todo WHERE todo.status LIKE '0'"""
 
     # see https://www.tutorialspoint.com/python/python_tuples.htm 
     arg = ()
@@ -75,7 +95,8 @@ def closed_list(proj, tag, state):
     c.execute(sql, arg)      
     result = c.fetchall()
 
-    sql = """SELECT task_id, entry_date FROM history WHERE task_id==? AND ledger LIKE 'CLOSED%'"""
+    sql = """SELECT task_id, entry_date 
+          FROM history WHERE task_id==? AND ledger LIKE 'CLOSED%'"""
 
     i = 0
     for row in result:
@@ -88,20 +109,34 @@ def closed_list(proj, tag, state):
     conn.commit()
     c.close()
 
+    # I can't use ORDERBY in sql because I don't have the right field to index
+    # until the closed dates are appended to each list item, and that doesn 't
+    # happen until the second sql where I match things up using the task id.
+
+    # Get a list of the "closed" dates in the order they appear in result list
+    a = [result[i][6] for i in range(len(result))]
+
+    # Get the sorted index that the result list needs to be reindexed to 
+    # https://stackoverflow.com/questions/7851077/how-to-return-index-of-a-sorted-list
+    sort_index = sorted(range(len(a)), key=lambda k: a[k], reverse=True)
+
+    # Apply the sort index to the result table
+    # https://stackoverflow.com/questions/2177590/how-can-i-reorder-a-list
+    result = [result[i] for i in sort_index]
+
     return template('make_table_closed', rows=result)
 
 
-# URLs /todo - return all
-@route('/todo',  method='GET')
+@app.get('/todo')
 def todo_all():
         return todo_list(proj='all', tag='all', state='all')
 
-# URLs /filter
-@route('/filter',  method='GET')
+
+@app.post('/filter')
 def todo_filter():
-    project = request.GET.project.strip()
-    tag = request.GET.tag.strip()
-    state = request.GET.state.strip()
+    project = request.forms.get('project').strip()
+    tag = request.forms.get('tag').strip()
+    state = request.forms.get('state').strip()
     if project == '': 
         project = 'all'
     if tag == '': 
@@ -111,10 +146,9 @@ def todo_filter():
 
     return todo_list(proj=project, tag=tag, state=state)
 
-# URLs of form todo/project/tag/state
-@route('/todo/<proj>/<tag>/<state>')
-def todo_list(proj, tag, state):
 
+@app.get('/todo/<proj>/<tag>/<state>')
+def todo_list(proj, tag, state):
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
     sql = """SELECT id, task, project, tag, state, date_due FROM todo WHERE todo.status LIKE '1'"""
@@ -125,13 +159,13 @@ def todo_list(proj, tag, state):
         sql += " AND project LIKE ?"
         arg += (proj,)
     if tag != "all":
-        sql =+ " AND tag LIKE ?"
-        arg =+ (tag,)
+        sql += " AND tag LIKE ?"
+        arg += (tag,)
     if state != "all":
         sql += " AND state LIKE ?"
         arg += (state,)
 
-    sql += " ORDER BY date_DUE ASC;"
+    sql += " ORDER BY date_due ASC;"
 
     c.execute(sql, arg)      
     result = c.fetchall()
@@ -150,22 +184,23 @@ def todo_list(proj, tag, state):
 
     return template('make_table', rows=result, states=get_states())
 
-# URLs of form /new, returns to /project/tag/state list
-@route('/new', method='GET')
+@app.get('/new')
+def new_get():
+    return template('new_task.tpl', projects=get_projects(), states=get_states())
+
+
+@app.post('/new')
 def new_item():
-
-    if request.GET.cancel:
-
+    if request.forms.get('cancel'):
         return todo_list(proj='all', tag='all', state='all')
 
-    elif request.GET.save:
-
-        new = request.GET.task.strip()
-        project = request.GET.project.strip()
-        tag = request.GET.tag.strip()
-        state = request.GET.state.strip()
+    elif request.forms.get('save'):
+        task = request.forms.get('task').strip()
+        project = request.forms.get('project').strip()
+        tag = request.forms.get('tag').strip()
+        state = request.forms.get('state').strip()
         date_in = datetime.datetime.now().isoformat()
-        date_due = request.GET.date_due.strip()
+        date_due = request.forms.get('date_due').strip()
         if date_due == '':
             date_due = '2000-01-01'
 
@@ -175,7 +210,7 @@ def new_item():
         sql = """INSERT INTO 'todo' 
                ('task', 'status', 'project', 'tag','state', 'date_due') 
                VALUES (?,1,?,?,?,?);"""
-        arg = (new, project, tag, state, date_due)
+        arg = (task, project, tag, state, date_due)
         c.execute(sql, arg)
         new_id = c.lastrowid
 
@@ -191,28 +226,15 @@ def new_item():
         return todo_list(proj='all', tag='all', state='all')
 
     else:
-
         return template('new_task.tpl', projects=get_projects(), states=get_states())
 
 
-# URLs /modify - gets number from form and routes to delete or edit
-@route('/modify',  method='GET')
-def modify_item_from_table():
-    number = request.GET.number.strip()
-    if request.GET.delete:
-        return del_item(number)
-    elif request.GET.edit:
-        return edit_item(number)
-
-# URLs /del/number, returns to /project/tag/state list
-@route('/del/<no:int>', method='GET')
+@app.get('/del/<no:int>')
 def del_item(no):
-
     if request.GET.confirm_cancel:
         return todo_list(proj='all', tag='all', state='all')
 
     elif request.GET.confirm_delete:
-
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
         c.execute("UPDATE todo SET status = ?, state = ? WHERE id LIKE ?;", (0, "DELETED", no,))
@@ -227,7 +249,6 @@ def del_item(no):
         return todo_list(proj='all', tag='all', state='all')
 
     else:
-
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
         c.execute("SELECT task FROM todo WHERE id LIKE ?", (no,))
@@ -236,40 +257,59 @@ def del_item(no):
 
         return template('del_task.tpl', task=task_text, no=no)
 
+# Support synonyms for edit: view, modify...
+@app.get('/view/<no:int>')
+def view_item(no):
+    return display_item(no=no)
 
+@app.get('/modify/<no:int>')
+def modify_item(no):
+    return display_item(no=no)
 
-# URL /edit, gets number from form and executes /edit/number
-@route('/edit', method='GET')
-def edit_item_from_table():
+@app.get('/edit/<no:int>')
+def edit_item_get_url(no):
+    return display_item(no=no)
 
-    if request.GET.edit:
-        number = request.GET.number.strip()
-        return edit_item(number)
+@app.get('/edit')
+def edit_item_get_form():
+    no = request.GET.number.strip()
+    return display_item(no=no)
 
-
-@route('/edit/<no:int>', method='GET')
-def edit_item(no):
-
-    if request.GET.cancel:
+@app.post('/edit/<no:int>')
+def edit_item(no):   
+    if request.forms.get('cancel'):
         return todo_list(proj='all', tag='all', state='all')
 
-    if request.GET.top:
-        return todo_list(proj='all', tag='all', state='all')
+    elif request.forms.get('new_note'):
+        return new_note(no=int(request.forms.get('task_number')))
 
-    elif request.GET.new_note:
-        return new_note(no=int(request.GET.number.strip()))
+    elif request.forms.get('new_file'):
+        return new_file(no=int(request.forms.get('task_number')))
 
-    elif request.GET.edit_note:
-        return edit_note(no=int(request.GET.note_number.strip()))
+    elif request.forms.get('edit_note'):
+        return edit_note(no=int(request.forms.get('note_number')))
 
-    elif request.GET.save:
+    elif request.forms.get('save'):
+        conn = sqlite3.connect('todo.db')
+        c = conn.cursor()
 
-        task = request.GET.task.strip()
-        status = request.GET.status.strip()
-        project = request.GET.project.strip()
-        tag = request.GET.tag.strip()
-        state = request.GET.state.strip()
-        date_due = request.GET.date_due.strip()
+        # get previous information about the task so that I can record what's changed in the ledger
+        c.execute( """SELECT * FROM TODO WHERE id LIKE ?""",(no,) )
+        a = c.fetchone()
+        old_task = a[1].strip() 
+        old_status = a[2]
+        old_project = a[3].strip()
+        old_tag = a[4].strip()
+        old_state = a[5].strip()
+        old_date_due = a[6].strip()
+
+        # get the new information from the form:
+        task = request.forms.get('task').strip()
+        status = request.forms.get('status')
+        project = request.forms.get('project').strip()
+        tag = request.forms.get('tag').strip()
+        state = request.forms.get('state').strip()
+        date_due = request.forms.get('date_due').strip()
         if date_due == '':
             date_due = '2000-01-01'
 
@@ -278,20 +318,37 @@ def edit_item(no):
         else:
             status = 0
 
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
+        # Update the todo table
         sql = """UPDATE todo 
             SET task = ?, status = ?, project = ?, tag = ?, state = ?, date_due = ?
             WHERE id LIKE ?"""
         c.execute(sql, (task, status, project, tag, state, date_due, no))
 
+        # Set up the ledger text to append to the history entry (don't use elif in order
+        # to catch changes in more than one field at a time)
+        ledger_text = " | "
+        if old_task != task:
+            ledger_text += "task:" + old_task + "-->" + task + "; "
+        if old_status != status:
+            ledger_text += "status:" + str(old_status) + "-->" + str(status) + "; "
+        if old_project != project:
+            ledger_text += "project:" + old_project + "-->" + project + "; "
+        if old_tag != tag:
+            ledger_text += "tag:" + old_tag + "-->" + tag + "; "
+        if old_state != state:
+            ledger_text += "state:" + old_state + "-->" + state + "; "
+        if old_date_due != date_due:
+            ledger_text += "date_due:" + old_date_due + "-->" + date_due + "; "
+        if ledger_text == " | ":
+            ledger_text += "saved with no changes"
+
+        # Write out the ledger for closed or edited (but not closed) tasks
         if status == 0:
             sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
-            arg = (no, datetime.datetime.now().isoformat(), "CLOSED - " + state)
-
+            arg = (no, datetime.datetime.now().isoformat(), "CLOSED - " + state + ledger_text)
         else:
             sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
-            arg = (no, datetime.datetime.now().isoformat(), "EDITED - " + state)
+            arg = (no, datetime.datetime.now().isoformat(), "EDITED - " + state + ledger_text)
 
         c.execute(sql, arg)
         conn.commit()
@@ -299,18 +356,19 @@ def edit_item(no):
 
         return display_item(no=no)
 
+    elif request.forms.get('delete'):
+        return del_item(no=int(request.forms.get('task_number')))
+
     else:
-
         return display_item(no=no)
 
-@route('/new_note/<no:int>',  method='GET')
+@app.post('/new_note/<no:int>')
 def new_note(no):
-
-    if request.GET.cancel:
+    if request.forms.get('cancel'):
         return display_item(no=no)
 
-    elif request.GET.save:  
-        note = request.GET.note.strip()
+    elif request.forms.get('save'):  
+        note = request.forms.get('note').strip()
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
@@ -324,21 +382,20 @@ def new_note(no):
         return display_item(no=no)
 
     else:
-
         return template('new_note', no=no)
 
-@route('/edit_note', method='GET')
-def edit_from_table():
 
-    if request.GET.edit:
-        number = int(request.GET.number.strip())
+
+@app.get('/edit_note')
+def edit_from_table():
+    if request.GET.edit_note:
+        number = int(request.GET.note_number.strip())
         return edit_note(number)
 
 
-@route('/edit_note/<no:int>', method='GET')
+@app.post('/edit_note/<no:int>')
 def edit_note(no):
-
-    if request.GET.cancel:
+    if request.forms.get('cancel'):
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
         c.execute("SELECT task_id FROM notes WHERE id==?", (no,))
@@ -347,8 +404,8 @@ def edit_note(no):
 
         return display_item(no=int(result[0]))
 
-    elif request.GET.save:
-        note = request.GET.note.strip()
+    elif request.forms.get('save'):
+        note = request.forms.get('note').strip()
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
@@ -366,7 +423,6 @@ def edit_note(no):
         return display_item(no=task_id[0])
 
     else:
-
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
 
@@ -377,44 +433,135 @@ def edit_note(no):
         c.close()
         return template('edit_note', no=no, note=note)
 
-# From baseline example - need to extend to pull in notes and status table
-@route('/item<item:re:[0-9]+>')
-def show_item(item):
+
+@app.post('/new_file/<no:int>')
+def new_file(no):
+
+    if request.forms.get('cancel'):
+        return display_item(no=no)
+
+    elif request.forms.get('submit'):  
+        upload = request.files.get('upload')
+        save_path = filedir = os.getcwd() + '/files'
+        entry_date = datetime.datetime.now().isoformat()
+        isoname = entry_date.replace(':','-')
+        file_path = "{path}/{file}".format(path=save_path, file=isoname)
+        upload.save(file_path, overwrite=True)
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("SELECT task FROM todo WHERE id LIKE ?", (item,))
-        result = c.fetchone()
+
+        description = request.forms.get('description')
+        filesize = upload.file.seek(0, 2)
+        upload.file.seek(0, 0)
+
+        sql = """INSERT INTO 'attach' ('task_id', 'entry_date', 'filename', 
+                 'description', 'filesize', 'filetype', 'isoname') VALUES (?, ?, ?, ?, ?, ?,?)"""
+        arg = (no, entry_date, upload.filename, description, filesize, upload.content_type, isoname)
+        c.execute(sql, arg)
+
+        sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
+        arg = (no, datetime.datetime.now().isoformat(), "EDITED - attach file: " + upload.filename)
+        c.execute(sql, arg)
+
+        conn.commit()
         c.close()
 
-        if not result:
-            return 'This item number does not exist!'
-        else:
-            return 'Task: %s' % result[0]
+        return display_item(no=no)
+
+    else:
+        return template('new_file', no=no)
 
 
-@route('/help')
-def help():
-    static_file('help.html', root='.')
-
-#  Comes from page that showed how to reference css
-@route('/static/<filename:re:.*\.css>')
-def send_css(filename):
-    return static_file(filename, root='static')
-
-@route('/json<json:re:[0-9]+>')
-def show_json(json):
+@app.post('/edit_file')
+def edit_file():
+    no = int(request.forms.get('number'))
+    filedir = os.getcwd() + '/files'
 
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    c.execute("SELECT * FROM todo WHERE id LIKE ?", (json,))
-    result = c.fetchall()
+
+    sql = """SELECT id, isoname, filename, filetype FROM attach WHERE id==?"""
+    c.execute(sql, (no,))
+    a = c.fetchone()
+
+    if request.forms.get('download'):
+        return static_file(a[1], root=filedir, download=a[2], mimetype=a[3])
+
+
+    # Need a confirmation in here...
+    elif request.forms.get('delete'):
+        c.execute("DELETE FROM attach WHERE id==?;", (no,))
+        file_path = "{path}/{file}".format(path=filedir, file=a[1])
+        os.remove(file_path)
+
+        task_id = int(request.forms.get('task_id'))
+        sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
+        arg = (task_id, datetime.datetime.now().isoformat(), "EDITED - remove file: " + a[2])
+        c.execute(sql, arg)
+
+    conn.commit()
+    c.close()
+
+
+    return display_item(no=task_id)
+
+
+# From baseline example - need to extend to pull in notes and status table
+@app.get('/item/<item:re:[0-9]+>')
+def show_item(item):
+
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT task FROM todo WHERE id LIKE ?", (item,))
+    result = c.fetchone()
+    c.close()
+
+    if not result:
+        return 'This item number does not exist!'
+    else:
+        return 'Task: %s' % result[0]
+
+
+@app.get('/help')
+def help():
+    static_file('help.html', root='.')
+
+
+#  Comes from page that showed how to reference css
+@app.get('/static<filename:re:.*\.css>')
+def send_css(filename):
+    return static_file(filename, root='static')
+
+
+# https://stackoverflow.com/questions/7831371/is-there-a-way-to-get-a-list-of-column-names-in-sqlite
+# https://stackoverflow.com/questions/23110383/how-to-dynamically-build-a-json-object-with-python
+@app.get('/json/<item:re:[0-9]+>')
+def show_json(item):
+
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM todo WHERE id LIKE ?", (item,))
+    result = c.fetchone()
+    names = [description[0] for description in c.description]
     c.close()
 
     if not result:
         return {'task': 'This item number does not exist!'}
     else:
-        return {{'task': result[0]}, {'status': result[1]}, {'project': result[2]}, {'tag': result[3]}, {'state': result[4]}}
+        out = {}
+        for i in range(len(names)):
+            out[names[i]] = result[i]
+        
+        # Change 1/0 status to open/closed
+        if out['status'] == 1:
+            out['status'] = 'open'
+        else:
+            out['status'] = 'closed'
+
+        json_out = json.dumps(out)
+        return json_out # returning dumps() directly causes an error
+
 
 
 @error(403)
@@ -426,6 +573,5 @@ def mistake403(code):
 def mistake404(code):
     return 'Sorry, this page does not exist!'
 
-run(host='localhost', port=8081, debug=True, reloader=True)
-# remember to remove reloader=True and debug(True) when you move your
-# application from development to a productive environment
+# app.run(host='localhost', port=8081, reloader=True, debug=True)
+app.run(host='localhost', port=8080)
