@@ -203,10 +203,7 @@ def json_list():
         out = {}
         for i in range(len(names)):
             out[names[i]] = result[i]
-
-        # json_out = json.dumps(out)
-        # out_table.append(json_out)
-        out_table.append(out)
+        out_table.append(json.dumps(out))
     c.close()
 
     return template('make_json_table.tpl', rows=out_table)

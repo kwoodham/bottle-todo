@@ -1,4 +1,5 @@
 %from json2html import *
+%import json
 %import tomd
 <!-- 
 From: 
@@ -25,8 +26,10 @@ to disable escaping for that statement
     </head>
     <body>
 
+   <!-- https://www.geeksforgeeks.org/python-ways-to-convert-string-to-json-object/ --> 
     %projs = []
     %for row in rows:
+        %row = json.loads(row)
 	%projs.append(row['project'])
         %end
 
@@ -35,6 +38,7 @@ to disable escaping for that statement
         <h2>{{proj}}</h2>
 
         %for row in rows:
+	    %row = json.loads(row)
             %if row['project'] == str(proj):
 		<!-- dict1=dict2 just points to same object;
 		have to use copy() -->
