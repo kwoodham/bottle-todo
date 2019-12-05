@@ -9,7 +9,8 @@ body, table, input, select, button{
 }
 
 body {
-  background-color:#263238;
+  background-color:#313247;
+  /* background-color:#263238;  */
   margin: 0 auto;
   padding: 1em;
 }
