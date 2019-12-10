@@ -22,6 +22,39 @@ def get_states():
     c.close()
     return states
 
+def display_raw(no):
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM todo WHERE todo.id==?", (no,))
+    cur_data = c.fetchall()
+
+    if cur_data[0][2] == 1:
+        cur_status = 'open'
+    else:
+        cur_status = 'closed'
+
+    sql = """SELECT id, task_id, entry_date, ledger FROM history WHERE task_id==?
+        UNION
+        SELECT id, task_id, entry_date, ledger FROM notes WHERE task_id==?
+        ORDER BY entry_date DESC;"""
+
+    c.execute(sql,(no,no,))
+    ledger_data = c.fetchall()
+
+    sql = """SELECT id, task_id, entry_date, filename, 
+        description, filesize, filetype FROM attach WHERE task_id==?
+        ORDER BY entry_date DESC;"""
+
+    c.execute(sql,(no,))
+    attach_data = c.fetchall()
+
+    conn.commit()
+    c.close()       
+
+    return template('view_raw', old=cur_data, 
+        old_status=cur_status, no=no, projects=get_projects(), 
+        states=get_states(), notes=ledger_data, attachments=attach_data)
+
 
 def display_item(no):
     conn = sqlite3.connect('todo.db')
@@ -285,6 +318,10 @@ def del_item(no):
 @app.get('/view/<no:int>')
 def view_item(no):
     return display_item(no=no)
+
+@app.get('/raw/<no:int>')
+def view_item(no):
+    return display_raw(no=no)
 
 @app.get('/modify/<no:int>')
 def modify_item(no):
