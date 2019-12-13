@@ -1,4 +1,4 @@
-%include('header.tpl', title='Open Items')
+%include('header.tpl', title='Historical Ledger')
 %import datetime
 
 
