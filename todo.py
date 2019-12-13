@@ -626,8 +626,10 @@ def show_json(item):
         json_out = json.dumps(out)
         return json_out # returning dumps() directly causes an error
 
+
+# All history
 @app.get('/history')
-def history():
+def history_all():
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
 
@@ -639,6 +641,52 @@ def history():
             ORDER by entry_date;"""
 
     c.execute(sql)      
+    results = c.fetchall()
+    c.close()
+    return template('history_table', results=results)
+
+
+# History after a given start date (inclusive)
+@app.get('/history/<start>')
+def history_after(start):
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+
+    sql = """SELECT todo.id, todo.task, history.entry_date AS entry_date, history.ledger 
+            FROM todo INNER JOIN history 
+            WHERE ( todo.id LIKE history.task_id ) AND ( entry_date >= ? )
+            UNION
+            SELECT todo.id, todo.task, notes.entry_date AS entry_date, notes.ledger
+            FROM todo INNER JOIN notes 
+            WHERE ( todo.id LIKE notes.task_id ) AND ( entry_date >= ? )
+            ORDER by entry_date;"""
+    
+    arg = (start, start,)
+
+    c.execute(sql, arg)      
+    results = c.fetchall()
+    c.close()
+    return template('history_table', results=results)
+
+
+# History between a start and end date (inclusive)
+@app.get('/history/<start>/<end>')
+def history_between(start,end):
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+
+    sql = """SELECT todo.id, todo.task, history.entry_date AS entry_date, history.ledger 
+            FROM todo INNER JOIN history 
+            WHERE ( todo.id LIKE history.task_id ) AND ( entry_date BETWEEN ? AND ? )
+            UNION
+            SELECT todo.id, todo.task, notes.entry_date AS entry_date, notes.ledger
+            FROM todo INNER JOIN notes 
+            WHERE ( todo.id LIKE notes.task_id ) AND ( entry_date BETWEEN ? AND ? )
+            ORDER by entry_date;"""
+    
+    arg = (start, end, start, end,)
+
+    c.execute(sql, arg)      
     results = c.fetchall()
     c.close()
     return template('history_table', results=results)
