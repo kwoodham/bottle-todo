@@ -626,6 +626,22 @@ def show_json(item):
         json_out = json.dumps(out)
         return json_out # returning dumps() directly causes an error
 
+@app.get('/history')
+def history():
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+
+    sql = """SELECT todo.id, todo.task, history.entry_date AS entry_date, history.ledger 
+            FROM todo INNER JOIN history WHERE todo.id LIKE history.task_id
+            UNION
+            SELECT todo.id, todo.task, notes.entry_date AS entry_date, notes.ledger
+            FROM todo INNER JOIN notes WHERE todo.id LIKE notes.task_id 
+            ORDER by entry_date;"""
+
+    c.execute(sql)      
+    results = c.fetchall()
+    c.close()
+    return template('history_table', results=results)
 
 
 @error(403)
