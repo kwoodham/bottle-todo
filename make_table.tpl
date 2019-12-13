@@ -88,6 +88,7 @@
 
       <td><select name="state">
         <option>all</option>
+        <option>!dormant</option>
         %for s in table_s:
           <option>{{s}}</option>
         %end

@@ -194,7 +194,10 @@ def todo_list(proj, tag, state):
     if tag != "all":
         sql += " AND tag LIKE ?"
         arg += (tag,)
-    if state != "all":
+    if state == "!dormant":
+        sql += " AND state NOT LIKE ?"
+        arg += ('dormant', )
+    elif state != "all":
         sql += " AND state LIKE ?"
         arg += (state,)
 
