@@ -7,7 +7,9 @@
       <th><b>Note</b></th>
     </tr>
     <tr>
-      <td><input type="text" size="120" maxlength="5000" name="note" value="{{note[0]}}" autofocus></td>
+      <td><textarea rows="5" cols="120" maxength="1000" 
+                    name="note" value="" autofocus>{{note[0]}}</textarea>
+      </td>
     </tr>
     <tr>
       <td>
