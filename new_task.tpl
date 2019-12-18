@@ -10,7 +10,7 @@
       <th><b>due</b></th>
     </tr>
     <tr>
-      <td><input type="text" size="50" maxlength="50" name="task" autofocus></td>
+      <td><input type="text" size="50" maxlength="100" name="task" autofocus></td>
 
       <td><select name="project">
         %for project in projects:
