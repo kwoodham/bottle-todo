@@ -17,8 +17,7 @@
       <td class="left"><input type="text" name="task" value="{{old[0][1]}}" size="50" maxlength="100"></td>
       <td><select name="status">
         <option>{{old_status}}</option>
-        % temp = old_status
-        % if temp == 'closed':
+        % if old_status == 'closed':
         	<option>open</option>
         % else:
           <option>closed</option>
@@ -66,7 +65,9 @@
 
 <p></p>
   
-<h3>Note: Browser security may require file URL cut/paste into new tab</h3>
+%if old_status == 'closed':
+<h3><font color="red">This task is closed - verify that you intend to edit it.</font></h3>
+%end
 
 <table>
   <tr>

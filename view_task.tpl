@@ -43,8 +43,6 @@
 
 <p></p>
 
-<h3>Note: Browser security may require file URL cut/paste into new tab</h3>
-
 <table>
   <tr>
     <th width=120px><b>date</b></th>
