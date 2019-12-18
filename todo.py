@@ -56,7 +56,7 @@ def display_raw(no):
         states=get_states(), notes=ledger_data, attachments=attach_data)
 
 
-def display_item(no):
+def display_item_edit(no):
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
     c.execute("SELECT * FROM todo WHERE todo.id==?", (no,))
@@ -85,17 +85,44 @@ def display_item(no):
     conn.commit()
     c.close()       
 
-    if cur_status=='open':
+    return template('edit_task', old=cur_data, 
+        old_status=cur_status, no=no, projects=get_projects(), 
+        states=get_states(), notes=ledger_data, attachments=attach_data)
 
-        return template('edit_task', old=cur_data, 
-            old_status=cur_status, no=no, projects=get_projects(), 
-            states=get_states(), notes=ledger_data, attachments=attach_data)
 
+
+def display_item_view(no):
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM todo WHERE todo.id==?", (no,))
+    cur_data = c.fetchall()
+
+    if cur_data[0][2] == 1:
+        cur_status = 'open'
     else:
+        cur_status = 'closed'
 
-        return template('view_task', old=cur_data, 
-            old_status=cur_status, no=no, projects=get_projects(), 
-            states=get_states(), notes=ledger_data, attachments=attach_data)
+    sql = """SELECT id, task_id, entry_date, ledger FROM history WHERE task_id==?
+        UNION
+        SELECT id, task_id, entry_date, ledger FROM notes WHERE task_id==?
+        ORDER BY entry_date DESC;"""
+
+    c.execute(sql,(no,no,))
+    ledger_data = c.fetchall()
+
+    sql = """SELECT id, task_id, entry_date, filename, 
+        description, filesize, filetype FROM attach WHERE task_id==?
+        ORDER BY entry_date DESC;"""
+
+    c.execute(sql,(no,))
+    attach_data = c.fetchall()
+
+    conn.commit()
+    c.close()       
+
+    return template('view_task', old=cur_data, 
+        old_status=cur_status, no=no, projects=get_projects(), 
+        states=get_states(), notes=ledger_data, attachments=attach_data)
 
 
 app = Bottle()
@@ -317,27 +344,22 @@ def del_item(no):
 
         return template('del_task.tpl', task=task_text, no=no)
 
-# Support synonyms for edit: view, modify...
 @app.get('/view/<no:int>')
 def view_item(no):
-    return display_item(no=no)
+    return display_item_view(no=no)
 
 @app.get('/raw/<no:int>')
 def view_item(no):
     return display_raw(no=no)
 
-@app.get('/modify/<no:int>')
-def modify_item(no):
-    return display_item(no=no)
-
 @app.get('/edit/<no:int>')
 def edit_item_get_url(no):
-    return display_item(no=no)
+    return display_item_edit(no=no)
 
 @app.get('/edit')
 def edit_item_get_form():
     no = request.GET.number.strip()
-    return display_item(no=no)
+    return display_item_edit(no=no)
 
 @app.post('/edit/<no:int>')
 def edit_item(no):   
@@ -418,18 +440,18 @@ def edit_item(no):
         conn.commit()
         c.close()
 
-        return display_item(no=no)
+        return display_item_edit(no=no)
 
     elif request.forms.get('delete'):
         return del_item(no=int(request.forms.get('task_number')))
 
     else:
-        return display_item(no=no)
+        return display_item_edit(no=no)
 
 @app.post('/new_note/<no:int>')
 def new_note(no):
     if request.forms.get('cancel'):
-        return display_item(no=no)
+        return display_item_edit(no=no)
 
     elif request.forms.get('save'):  
         note = request.forms.get('note').strip()
@@ -443,7 +465,7 @@ def new_note(no):
         conn.commit()
         c.close()
 
-        return display_item(no=no)
+        return display_item_edit(no=no)
 
     else:
         return template('new_note', no=no)
@@ -466,7 +488,7 @@ def edit_note(no):
         result = c.fetchone()
         c.close()
 
-        return display_item(no=int(result[0]))
+        return display_item_edit(no=int(result[0]))
 
     elif request.forms.get('save'):
         note = request.forms.get('note').strip()
@@ -484,7 +506,7 @@ def edit_note(no):
         conn.commit()
         c.close()
 
-        return display_item(no=task_id[0])
+        return display_item_edit(no=task_id[0])
 
     else:
         conn = sqlite3.connect('todo.db')
@@ -502,7 +524,7 @@ def edit_note(no):
 def new_file(no):
 
     if request.forms.get('cancel'):
-        return display_item(no=no)
+        return display_item_edit(no=no)
 
     elif request.forms.get('submit'):  
         upload = request.files.get('upload')
@@ -531,7 +553,7 @@ def new_file(no):
         conn.commit()
         c.close()
 
-        return display_item(no=no)
+        return display_item_edit(no=no)
 
     else:
         return template('new_file', no=no)
@@ -568,23 +590,7 @@ def edit_file():
     c.close()
 
 
-    return display_item(no=task_id)
-
-
-# From baseline example - need to extend to pull in notes and status table
-@app.get('/item/<item:re:[0-9]+>')
-def show_item(item):
-
-    conn = sqlite3.connect('todo.db')
-    c = conn.cursor()
-    c.execute("SELECT task FROM todo WHERE id LIKE ?", (item,))
-    result = c.fetchone()
-    c.close()
-
-    if not result:
-        return 'This item number does not exist!'
-    else:
-        return 'Task: %s' % result[0]
+    return display_item_edit(no=task_id)
 
 
 @app.get('/help')

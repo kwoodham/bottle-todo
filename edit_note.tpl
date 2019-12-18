@@ -1,7 +1,8 @@
 % include('header.tpl', title='Edit Note for Task %s' % no)
 
 <form action="/edit_note/{{no}}" method="POST" enctype="multipart/form-data">
-  <h3>Edit note - saving a cleared note deletes it</h3>
+  <h3>Place optional URL (http:, https:, outlook:, or file:) at start of the text, one per note.</h3>
+  <h3>Saving a cleared note deletes it.</h3>
   <table>
     <tr>
       <th><b>Note</b></th>

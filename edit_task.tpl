@@ -66,6 +66,8 @@
 
 <p></p>
   
+<h3>Note: Browser security may require file URL cut/paste into new tab</h3>
+
 <table>
   <tr>
     <th width=120px><b>date</b></th>
@@ -81,8 +83,16 @@
 
       <!-- make clickable notes that are links -->
       <!-- https://stackoverflow.com/questions/15551779/open-link-in-new-tab-or-window -->
-      %if ( note[3][0:5]=='http:' ) or ( note[3][0:6]=='https:' ) or ( note[3][0:8]=='outlook:' ):
-        <td class="left"><a target="_blank" rel="noopener noreferrer" href={{note[3]}}>{{note[3]}}</a></td>
+      %if ( note[3][:5]=='http:' ) or ( note[3][:6]=='https:' ) or ( note[3][:5]=='file:' ) or ( note[3][:8]=='outlook:' ):
+        %url_end = note[3].find(" ")
+        %if url_end > 0:
+          %url_text = note[3][:url_end]
+          %lbl_text = note[3][(url_end+1):]
+        %else:
+          %url_text = note[3]
+          %lbl_text = " "
+        %end
+        <td class="left"><a target="_blank" rel="noopener noreferrer" href="{{url_text}}">{{url_text}} </a>{{lbl_text}}</td>
       %else:
         <td class="left">{{note[3]}}</td>
       %end
