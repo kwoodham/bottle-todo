@@ -51,7 +51,12 @@
   <tr><td colspan=8> </td></tr>
 
   <tr>
-    <td colspan=2></td>
+    <td class="left">
+      <form action="/new" method="post">
+        <input type="submit" name="new" value="+">
+      </form>
+    </td>
+
     <form action="/filter" method="POST" enctype="multipart/form-data">
       %table_p = []
       %table_t = []
@@ -69,6 +74,10 @@
       %table_p.sort()
       %table_t.sort()
       %table_s.sort()
+
+      <td class="left">
+        <input type="text" size="30" maxlength="30" name="task_string">
+      </td>
 
       <td><select name="project">
         <option>all</option>
@@ -98,11 +107,7 @@
       <td class="left"><input type="submit" name="filter" value="filter"></td>
     </form>
 
-    <td colspan=2 class="right">
-      <form action="/new" method="post">
-        <input type="submit" name="new" value="+">
-      </form>
-    </td>
+    <td colspan=2></td>
   </tr>
 </table>
 

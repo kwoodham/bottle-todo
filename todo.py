@@ -189,11 +189,12 @@ def closed_list(proj, tag, state):
 
 @app.get('/todo')
 def todo_all():
-        return todo_list(proj='all', tag='all', state='all')
+        return todo_list(tstr='', proj='all', tag='all', state='all')
 
 
 @app.post('/filter')
 def todo_filter():
+    task_string = request.forms.get('task_string').strip()
     project = request.forms.get('project').strip()
     tag = request.forms.get('tag').strip()
     state = request.forms.get('state').strip()
@@ -204,17 +205,20 @@ def todo_filter():
     if state == '': 
         state = 'all'
 
-    return todo_list(proj=project, tag=tag, state=state)
+    return todo_list(tstr=task_string, proj=project, tag=tag, state=state)
 
 
-@app.get('/todo/<proj>/<tag>/<state>')
-def todo_list(proj, tag, state):
+@app.get('/todo/<tstr>/<proj>/<tag>/<state>')
+def todo_list(tstr, proj, tag, state):
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
     sql = """SELECT id, task, project, tag, state, date_due FROM todo WHERE todo.status LIKE '1'"""
 
     # see https://www.tutorialspoint.com/python/python_tuples.htm 
     arg = ()
+    if (tstr != "all") and (tstr != ""):
+        sql += " AND task LIKE ?"
+        arg += ("%" + tstr + "%",)
     if proj != "all":
         sql += " AND project LIKE ?"
         arg += (proj,)
@@ -279,7 +283,7 @@ def new_get():
 @app.post('/new')
 def new_item():
     if request.forms.get('cancel'):
-        return todo_list(proj='all', tag='all', state='all')
+        return todo_list(tstr='', proj='all', tag='all', state='all')
 
     elif request.forms.get('save'):
         task = request.forms.get('task').strip()
@@ -310,7 +314,7 @@ def new_item():
         conn.commit()
         c.close()
 
-        return todo_list(proj='all', tag='all', state='all')
+        return todo_list(tstr='', proj='all', tag='all', state='all')
 
     else:
         return template('new_task.tpl', projects=get_projects(), states=get_states())
@@ -319,7 +323,7 @@ def new_item():
 @app.get('/del/<no:int>')
 def del_item(no):
     if request.GET.confirm_cancel:
-        return todo_list(proj='all', tag='all', state='all')
+        return todo_list(tstr='', proj='all', tag='all', state='all')
 
     elif request.GET.confirm_delete:
         conn = sqlite3.connect('todo.db')
@@ -333,7 +337,7 @@ def del_item(no):
         conn.commit()
         c.close()
 
-        return todo_list(proj='all', tag='all', state='all')
+        return todo_list(tstr='', proj='all', tag='all', state='all')
 
     else:
         conn = sqlite3.connect('todo.db')
@@ -364,7 +368,7 @@ def edit_item_get_form():
 @app.post('/edit/<no:int>')
 def edit_item(no):   
     if request.forms.get('cancel'):
-        return todo_list(proj='all', tag='all', state='all')
+        return todo_list(tstr='', proj='all', tag='all', state='all')
 
     elif request.forms.get('new_note'):
         return new_note(no=int(request.forms.get('task_number')))
