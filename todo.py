@@ -130,11 +130,16 @@ app = Bottle()
 
 @app.get('/closed')
 def closed_all():
-        return closed_list(proj='all', tag='all', state='all')
+        return closed_list(tstr='all', proj='all', tag='all', state='all')
 
 
-@app.get('/closed/<proj>/<tag>/<state>')
-def closed_list(proj, tag, state):
+@app.get('/closed/<tstr>')
+def closed_tstr(tstr):
+        return closed_list(tstr=tstr, proj='all', tag='all', state='all')
+
+
+@app.get('/closed/<tstr>/<proj>/<tag>/<state>')
+def closed_list(tstr, proj, tag, state):
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
     sql = """SELECT id, task, project, tag, state, date_due 
@@ -142,6 +147,9 @@ def closed_list(proj, tag, state):
 
     # see https://www.tutorialspoint.com/python/python_tuples.htm 
     arg = ()
+    if (tstr != "all") and (tstr != ""):
+        sql += " AND task LIKE ?"
+        arg += ("%" + tstr + "%",)
     if proj != "all":
         sql += " AND project LIKE ?"
         arg += (proj,)
@@ -190,6 +198,11 @@ def closed_list(proj, tag, state):
 @app.get('/todo')
 def todo_all():
         return todo_list(tstr='', proj='all', tag='all', state='all')
+
+
+@app.get('/todo/<tstr>')
+def todo_tstr(tstr):
+        return todo_list(tstr=tstr, proj='all', tag='all', state='all')
 
 
 @app.post('/filter')
