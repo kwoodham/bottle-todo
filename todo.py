@@ -442,18 +442,19 @@ def edit_item(no):
             ledger_text += "state:" + old_state + "-->" + state + "; "
         if old_date_due != date_due:
             ledger_text += "date_due:" + old_date_due + "-->" + date_due + "; "
-        if ledger_text == " | ":
-            ledger_text += "saved with no changes"
 
-        # Write out the ledger for closed or edited (but not closed) tasks
-        if status == 0:
-            sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
-            arg = (no, datetime.datetime.now().isoformat(), "CLOSED - " + state + ledger_text)
-        else:
-            sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
-            arg = (no, datetime.datetime.now().isoformat(), "EDITED - " + state + ledger_text)
+        # 12/27/2019 - Only record save if something has changed
+        if ledger_text != " | ":
 
-        c.execute(sql, arg)
+            # Write out the ledger for closed or edited (but not closed) tasks
+            if status == 0:
+                sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
+                arg = (no, datetime.datetime.now().isoformat(), "CLOSED - " + state + ledger_text)
+            else:
+                sql = """INSERT INTO 'history' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
+                arg = (no, datetime.datetime.now().isoformat(), "EDITED - " + state + ledger_text)
+            c.execute(sql, arg)
+        
         conn.commit()
         c.close()
 
