@@ -10,7 +10,7 @@
       <th><b>due</b></th>
     </tr>
     <tr>
-      <td><input type="text" size="50" maxlength="100" name="task" autofocus></td>
+      <td><input type="text" size="40" maxlength="100" name="task" autofocus></td>
 
       <td><select name="project">
         %for project in projects:
@@ -19,7 +19,7 @@
         </select>
       </td>
 
-      <td><input type="text" size="20" maxlength="20" name="tag"></td>
+      <td><input type="text" size="15" maxlength="20" name="tag"></td>
 
       <td><select name="state">
         %for state in states:
@@ -28,7 +28,7 @@
         </select>
       </td>
 
-      <td><input type="date" size="20" maxlength="20" name="date_due" value='2000-01-01'></td>
+      <td><input type="date" size="15" maxlength="20" name="date_due" value='2000-01-01'></td>
 
     </tr>
       <tr><td colspan=5>

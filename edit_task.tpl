@@ -14,7 +14,7 @@
     </tr>
 
     <tr>
-      <td class="left"><input type="text" name="task" value="{{old[0][1]}}" size="50" maxlength="100"></td>
+      <td class="left"><input type="text" name="task" value="{{old[0][1]}}" size="40" maxlength="100"></td>
       <td><select name="status">
         <option>{{old_status}}</option>
         % if old_status == 'closed':
@@ -32,7 +32,7 @@
         %end
       </td>        
 
-      <td><input type="text" name="tag" value="{{old[0][4]}}" size="20" maxlength="20"></td>
+      <td><input type="text" name="tag" value="{{old[0][4]}}" size="15" maxlength="20"></td>
 
       <td><select name="state">
         <option>{{old[0][5]}}</option>
@@ -43,7 +43,7 @@
       </td>
 
       %date_due = datetime.datetime.fromisoformat(old[0][6])
-      <td><input type="date" size="20" maxlength="20" name="date_due" value={{date_due.strftime('%Y-%m-%d')}}></td>
+      <td><input type="date" size="20" maxlength="15" name="date_due" value={{date_due.strftime('%Y-%m-%d')}}></td>
     </tr>
   </table>
 
