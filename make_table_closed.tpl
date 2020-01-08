@@ -1,10 +1,11 @@
 %include('header.tpl', title='Closed Items')
 %import datetime
 
+%item_count = len(rows)
 <table>
   <tr>
     <th><b>id</b></th>
-    <th><b>task</b></th>
+    <th><b>task ({{item_count}})</b></th>
     <th><b>project</b></th>
     <th><b>tag</b></th>
     <th><b>state</b></th>

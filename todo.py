@@ -138,6 +138,11 @@ def closed_tstr(tstr):
         return closed_list(tstr=tstr, proj='all', tag='all', state='all')
 
 
+@app.get('/closed/<tstr>/<proj>')
+def closed_proj(tstr, proj):
+        return closed_list(tstr=tstr, proj=proj, tag='all', state='all')
+
+
 @app.get('/closed/<tstr>/<proj>/<tag>/<state>')
 def closed_list(tstr, proj, tag, state):
     conn = sqlite3.connect('todo.db')

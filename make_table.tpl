@@ -8,16 +8,17 @@
     %cl_vec.append(i[1])
 %end
 
+%item_count = len(rows)
 <table>
   <tr>
-    <th border-top-left-radius: 15px><b>id</b></th>
-    <th><b>task</b></th>
+    <th><b>id</b></th>
+    <th><b>task ({{item_count}})</b></th>
     <th><b>project</b></th>
     <th><b>tag</b></th>
     <th><b>state</b></th>
     <th><b>age</b></th>
     <th><b>due</b></th>
-    <th border-top-right-radius: 15px><b>days</b></th>
+    <th><b>days</b></th>
   </tr>
 
 %for row in rows:
