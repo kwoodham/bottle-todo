@@ -205,6 +205,11 @@ def todo_tstr(tstr):
         return todo_list(tstr=tstr, proj='all', tag='all', state='all')
 
 
+@app.get('/todo/<tstr>/<proj>')
+def todo_proj(tstr, proj):
+        return todo_list(tstr=tstr, proj=proj, tag='all', state='all')
+
+
 @app.post('/filter')
 def todo_filter():
     task_string = request.forms.get('task_string').strip()
