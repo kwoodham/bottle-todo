@@ -21,6 +21,64 @@
     <th><b>days</b></th>
   </tr>
 
+  <tr>
+
+    <form action="/filter" method="POST" enctype="multipart/form-data">
+      %table_p = []
+      %table_t = []
+      %table_s = []
+      %for row in rows:
+        %table_p.append(row[2])
+        %table_t.append(row[3])
+        %table_s.append(row[4])
+      %end
+
+      %table_p = list(set(table_p)) # generate a set of unique values
+      %table_t = list(set(table_t))
+      %table_s = list(set(table_s))
+
+      %table_p.sort()
+      %table_t.sort()
+      %table_s.sort()
+
+      <td>
+        <input type="submit" name="filter" value="?">
+      </td>
+
+      <td class="left">
+        <input type="text" size="30" maxlength="30" name="task_string", value="search text">
+      </td>
+
+      <td><select name="project">
+        <option>all</option>
+        %for p in table_p:
+          <option>{{p}}</option>
+        %end
+        </select>
+      </td>
+
+      <td><select name="tag">
+        <option>all</option>
+        %for t in table_t:
+          <option>{{t}}</option>
+        %end
+        </select>
+      </td>
+
+      <td><select name="state">
+        <option>all</option>
+        <option>!dormant</option>
+        %for s in table_s:
+          <option>{{s}}</option>
+        %end
+        </select>
+      </td>
+
+    </form>
+
+    <td colspan=3></td>
+  </tr>
+
 %for row in rows:
   %tint = cl_vec[st_vec.index(row[4])]
 
@@ -51,65 +109,39 @@
 
   <tr><td colspan=8> </td></tr>
 
-  <tr>
-    <td class="left">
-      <form action="/new" method="post">
-        <input type="submit" name="new" value="+">
-      </form>
-    </td>
-
-    <form action="/filter" method="POST" enctype="multipart/form-data">
-      %table_p = []
-      %table_t = []
-      %table_s = []
-      %for row in rows:
-        %table_p.append(row[2])
-        %table_t.append(row[3])
-        %table_s.append(row[4])
-      %end
-
-      %table_p = list(set(table_p)) # generate a set of unique values
-      %table_t = list(set(table_t))
-      %table_s = list(set(table_s))
-
-      %table_p.sort()
-      %table_t.sort()
-      %table_s.sort()
-
-      <td class="left">
-        <input type="text" size="30" maxlength="30" name="task_string">
+  <form action="/new" method="POST" enctype="multipart/form-data">
+    <tr>
+      <td>
+        <input type="submit" name="save" value="+">
       </td>
+
+      <td class="left"><input type="text" size="40" maxlength="100" name="task" autofocus></td>
 
       <td><select name="project">
-        <option>all</option>
-        %for p in table_p:
-          <option>{{p}}</option>
+        <option></option>
+        %for project in projects:
+          <option>{{project[0]}}</option>
         %end
         </select>
       </td>
 
-      <td><select name="tag">
-        <option>all</option>
-        %for t in table_t:
-          <option>{{t}}</option>
-        %end
-        </select>
-      </td>
+      <td><input type="text" size="15" maxlength="20" name="tag"></td>
 
       <td><select name="state">
-        <option>all</option>
-        <option>!dormant</option>
-        %for s in table_s:
-          <option>{{s}}</option>
+        <option></option>
+        %for state in states:
+          <option>{{state[0]}}</option>
         %end
         </select>
       </td>
 
-      <td class="left"><input type="submit" name="filter" value="filter"></td>
-    </form>
+      <td><input type="hidden" size="15" maxlength="20" name="date_due" value='2000-01-01'></td>
 
-    <td colspan=2></td>
-  </tr>
+      <td></td>
+      <td></td> 
+    </tr>
+  </form>
+
 </table>
 
 % include('footer.tpl')

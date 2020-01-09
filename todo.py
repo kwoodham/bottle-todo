@@ -239,7 +239,7 @@ def todo_list(tstr, proj, tag, state):
 
     # see https://www.tutorialspoint.com/python/python_tuples.htm 
     arg = ()
-    if (tstr != "all") and (tstr != ""):
+    if (tstr != "all") and (tstr != "") and (tstr != "search text"):
         sql += " AND task LIKE ?"
         arg += ("%" + tstr + "%",)
     if proj != "all":
@@ -272,7 +272,7 @@ def todo_list(tstr, proj, tag, state):
 
     c.close()
 
-    return template('make_table', rows=result, states=get_states())
+    return template('make_table', rows=result, states=get_states(), projects=get_projects())
 
 @app.get('/json')
 def json_list():
