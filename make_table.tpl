@@ -41,12 +41,10 @@
       %table_t.sort()
       %table_s.sort()
 
-      <td>
-        <input type="submit" name="filter" value="?">
-      </td>
+      <td></td>
 
       <td class="left">
-        <input type="text" size="30" maxlength="30" name="task_string", value="search text">
+        <input type="text" size="40" maxlength="100" name="task_string", value="search text">
       </td>
 
       <td><select name="project">
@@ -74,10 +72,13 @@
         </select>
       </td>
 
+      <td class="left" colspan=3><input type="submit" name="filter" value="?"></td>
+
     </form>
 
-    <td colspan=3></td>
   </tr>
+
+  <tr><td colspan=8></td></tr>
 
 %for row in rows:
   %tint = cl_vec[st_vec.index(row[4])]
@@ -107,13 +108,11 @@
   </tr>
 %end
 
-  <tr><td colspan=8> </td></tr>
+  <tr><td colspan=8></td></tr>
 
   <form action="/new" method="POST" enctype="multipart/form-data">
     <tr>
-      <td>
-        <input type="submit" name="save" value="+">
-      </td>
+      <td></td>
 
       <td class="left"><input type="text" size="40" maxlength="100" name="task" autofocus></td>
 
@@ -135,9 +134,8 @@
         </select>
       </td>
 
+      <td><input type="submit" name="save" value="+"></td>
       <td><input type="hidden" size="15" maxlength="20" name="date_due" value='2000-01-01'></td>
-
-      <td></td>
       <td></td> 
     </tr>
   </form>

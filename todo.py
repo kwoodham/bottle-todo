@@ -311,8 +311,12 @@ def new_item():
     elif request.forms.get('save'):
         task = request.forms.get('task').strip()
         project = request.forms.get('project').strip()
+        if project == '':
+            project = "unassigned"
         tag = request.forms.get('tag').strip()
         state = request.forms.get('state').strip()
+        if state == '':
+            state = 'dormant'
         date_in = datetime.datetime.now().isoformat()
         date_due = request.forms.get('date_due').strip()
         if date_due == '':
