@@ -66,7 +66,7 @@
 <p></p>
   
 %if old_status == 'closed':
-<h3><font color="red">This task is closed - verify that you intend to edit it.</font></h3>
+<h3><font color="red">Achtung! This task is closed - verify that you intend to edit it.</font></h3>
 %end
 
 <table>
