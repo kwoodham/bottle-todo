@@ -676,7 +676,7 @@ def history_all():
             UNION
             SELECT todo.id, todo.task, notes.entry_date AS entry_date, notes.ledger
             FROM todo INNER JOIN notes WHERE todo.id LIKE notes.task_id 
-            ORDER by entry_date;"""
+            ORDER by entry_date DESC;"""
 
     c.execute(sql)      
     results = c.fetchall()
@@ -697,7 +697,7 @@ def history_after(start):
             SELECT todo.id, todo.task, notes.entry_date AS entry_date, notes.ledger
             FROM todo INNER JOIN notes 
             WHERE ( todo.id LIKE notes.task_id ) AND ( entry_date >= ? )
-            ORDER by entry_date;"""
+            ORDER by entry_date DESC;"""
     
     arg = (start, start,)
 
@@ -720,7 +720,7 @@ def history_between(start,end):
             SELECT todo.id, todo.task, notes.entry_date AS entry_date, notes.ledger
             FROM todo INNER JOIN notes 
             WHERE ( todo.id LIKE notes.task_id ) AND ( entry_date BETWEEN ? AND ? )
-            ORDER by entry_date;"""
+            ORDER by entry_date DESC;"""
     
     arg = (start, end, start, end,)
 
