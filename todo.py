@@ -310,6 +310,8 @@ def new_item():
 
     elif request.forms.get('save'):
         task = request.forms.get('task').strip()
+        if task == '':
+            task = "blank"
         project = request.forms.get('project').strip()
         if project == '':
             project = "unassigned"
