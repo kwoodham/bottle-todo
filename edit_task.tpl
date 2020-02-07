@@ -71,8 +71,8 @@
 
 <table>
   <tr>
-    <th width=120px><b>date</b></th>
-    <th width=120px><b>time</b></th>
+    <th width=160px><b>date</b></th>
+    <th width=160px><b>time</b></th>
     <th colspan=2><b>ledger</b></th>
   </tr>
 
@@ -118,8 +118,8 @@
 %if len(attachments):
 <table>
   <tr>
-    <th width=120px><b>date</b></th>
-    <th width=120px><b>time</b></th>
+    <th width=160px><b>date</b></th>
+    <th width=160px><b>time</b></th>
     <th><b>filename</b></th>
     <th><b>description</b></th>
     <th><b>action</b></th>

@@ -489,15 +489,15 @@ def new_note(no):
 
     elif request.forms.get('save'):  
         note = request.forms.get('note').strip()
+        if note != '': # 2/7/2020: Don't save an empty note
+            conn = sqlite3.connect('todo.db')
+            c = conn.cursor()
 
-        conn = sqlite3.connect('todo.db')
-        c = conn.cursor()
-
-        sql = """INSERT INTO 'notes' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
-        arg = (no, datetime.datetime.now().isoformat(), note)
-        c.execute(sql, arg)
-        conn.commit()
-        c.close()
+            sql = """INSERT INTO 'notes' ('task_id', 'entry_date', 'ledger') VALUES (?, ?, ?)"""
+            arg = (no, datetime.datetime.now().isoformat(), note)
+            c.execute(sql, arg)
+            conn.commit()
+            c.close()
 
         return display_item_edit(no=no)
 

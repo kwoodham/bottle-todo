@@ -8,14 +8,14 @@
       <th><b>Note</b></th>
     </tr>
     <tr>
-      <td><textarea rows="5" cols="120" maxength="1000" 
+      <td><textarea rows="20" cols="120" maxength="1000" 
                     name="note" value="" autofocus>{{note[0]}}</textarea>
       </td>
     </tr>
     <tr>
       <td>
-        <input type="submit" name="save" value="save">
-        <input type="submit" name="cancel" value="cancel">
+        <input type="submit" name="save" value="Update">
+        <input type="submit" name="cancel" value="Cancel/Return">
       </td> 
     </tr>
   </table>
