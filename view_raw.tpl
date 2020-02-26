@@ -8,7 +8,9 @@ status:  {{old_status}}
 project: {{old[0][3]}}
 tag:     {{old[0][4]}}
 state:   {{old[0][5]}}
-due:     {{date_due.strftime('%Y-%m-%d')}}
+%if   date_due.strftime('%Y-%m-%d') != '2000-01-01':
+due:     {{date_due.strftime('%Y-%m-%d')}} 
+%end
  
 %for note in notes:
 %entry_date = datetime.datetime.fromisoformat(note[2])
