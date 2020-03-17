@@ -101,7 +101,7 @@
       %test = note[3].split()
       %if test[0] not in ['OPENED', 'EDITED', 'CLOSED']:
         <td>
-          <form action="/edit_note" method="GET">
+          <form action="/edit_note/{{note[0]}}" method="POST">
             <input type="hidden" name="note_number" value={{note[0]}}>
             <input type="submit" name="edit_note" value="edit">
           </form>

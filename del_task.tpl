@@ -1,5 +1,5 @@
 % include('header.tpl', title='Confirm Delete of Task %s' % no)
-<form action="/del/{{no}}" method="GET">
+<form action="/del/{{no}}" method="POST">
 <table>
   <tr>
     <th colspan=2>Confirm Delete</th>
