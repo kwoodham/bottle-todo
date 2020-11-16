@@ -84,8 +84,11 @@
 
       <!-- make clickable notes that are links -->
       <!-- https://stackoverflow.com/questions/15551779/open-link-in-new-tab-or-window -->
+      <!-- 20201116 - have notes with url ending the line - need to add look for eol before first blank -->      
       %if ( note[3][:5]=='http:' ) or ( note[3][:6]=='https:' ) or ( note[3][:5]=='file:' ) or ( note[3][:8]=='outlook:' ):
-        %url_end = note[3].find(" ")
+        %url_end_blank = note[3].find(" ")
+        %url_eol = note[3].find("\n")
+        %url_end = min(url_end_blank, url_eol)
         %if url_end > 0:
           %url_text = note[3][:url_end]
           %lbl_text = note[3][(url_end+1):]
