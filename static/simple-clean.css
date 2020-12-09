@@ -79,4 +79,5 @@ td {
 
 tr .left { text-align:left; }
 tr .right { text-align:right; }
-
+/* 20201209 - added to retain whitespace in notes */
+tr .wrapped { text-align:left; white-space:pre-wrap; word-wrap:break-word; }

@@ -102,9 +102,10 @@
           %url_text = note[3]
           %lbl_text = " "
         %end
-        <td class="left"><a target="_blank" rel="noopener noreferrer" href="{{url_text}}">{{url_text}} </a>{{lbl_text}}</td>
+        <!-- 20201209 - added wrapped style to css - retains whitespace in notes -->
+        <td class="wrapped"><a target="_blank" rel="noopener noreferrer" href="{{url_text}}">{{url_text}} </a>{{lbl_text}}</td>
       %else:
-        <td class="left">{{note[3]}}</td>
+        <td class="wrapped">{{note[3]}}</td>
       %end
 
       %test = note[3].split()
