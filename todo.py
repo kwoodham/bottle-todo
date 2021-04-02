@@ -442,6 +442,8 @@ def todo_list(tstr, proj, tag, state):
     if state == "!dormant":
         sql += " AND state NOT LIKE ?"
         arg += ('dormant', )
+        sql += " AND state NOT LIKE ?"
+        arg += ('z-done', )
     elif state != "all":
         sql += " AND state LIKE ?"
         arg += (state,)
