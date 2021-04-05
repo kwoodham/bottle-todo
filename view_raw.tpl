@@ -15,6 +15,7 @@ due:     {{date_due.strftime('%Y-%m-%d')}}
 %for note in notes:
 %entry_date = datetime.datetime.fromisoformat(note[2])
 {{entry_date.strftime('%Y-%m-%d')}}/{{entry_date.strftime('%H:%M:%S')}}: {{note[3]}}
+<br>---<br><br>
 %end
 
 %if len(attachments):
