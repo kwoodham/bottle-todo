@@ -12,16 +12,19 @@ state:   {{old[0][5]}}
 due:     {{date_due.strftime('%Y-%m-%d')}} 
 %end
  
+%if len(notes):
 %for note in notes:
 %entry_date = datetime.datetime.fromisoformat(note[2])
 {{entry_date.strftime('%Y-%m-%d')}}/{{entry_date.strftime('%H:%M:%S')}}: {{note[3]}}
 <br>---<br><br>
+%end
 %end
 
 %if len(attachments):
 %for attach in attachments:
 %entry_date = datetime.datetime.fromisoformat(attach[2])
 {{entry_date.strftime('%Y-%m-%d')}}/{{entry_date.strftime('%H:%M:%S')}}: {{attach[3]}} ({{attach[4]}})
+<br>---<br><br>
 %end
 %end
 </pre>
