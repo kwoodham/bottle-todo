@@ -448,7 +448,8 @@ def todo_list(tstr, proj, tag, state):
         sql += " AND state LIKE ?"
         arg += (state,)
 
-    sql += " ORDER BY date_due ASC;"
+    #sql += " ORDER BY date_due ASC;"
+    sql += " ORDER BY state ASC;"
 
     c.execute(sql, arg)      
     result = c.fetchall()
