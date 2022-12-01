@@ -873,6 +873,7 @@ def mistake404(code):
 # START THE WEBSERVER AND CROSS YOUR FINGERS
 ## =========================================
 
+# Make sure port in history_table.tpl matches what is used here
 
 # app.run(host='localhost', port=8081, reloader=True, debug=True)
 app.run(host='localhost', port=8080)

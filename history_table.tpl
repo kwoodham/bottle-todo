@@ -16,7 +16,7 @@
     %date = datetime.datetime.fromisoformat(row[3])
     <td class="left" style="font-size:16px">{{date.strftime('%Y-%m-%d')}}</td>
     <td class="left" style="font-size:16px">{{date.strftime('%H:%M:%S')}}</td>
-    <td class="left" style="font-size:16px"><a href="http://localhost:8080/view/{{row[0]}}">{{row[0]}}: ({{row[1]}}) {{row[2]}}</a></td> 
+    <td class="left" style="font-size:16px"><a href="http://localhost:8081/view/{{row[0]}}">{{row[0]}}: ({{row[1]}}) {{row[2]}}</a></td> 
     <td class="left" style="font-size:16px">{{row[4]}}</td>
   </tr>
 
